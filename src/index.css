@@ -1,0 +1,46 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  /* Remap teal to a punchy violet/indigo for a modern vibe */
+  --color-teal-50: var(--color-indigo-50);
+  --color-teal-100: var(--color-indigo-100);
+  --color-teal-200: var(--color-indigo-200);
+  --color-teal-300: var(--color-indigo-300);
+  --color-teal-400: var(--color-indigo-400);
+  --color-teal-500: var(--color-indigo-500);
+  --color-teal-600: var(--color-indigo-600);
+  --color-teal-700: var(--color-indigo-700);
+  --color-teal-800: var(--color-indigo-800);
+  --color-teal-900: var(--color-indigo-900);
+  --color-teal-950: var(--color-indigo-950);
+
+  /* Remap slate to zinc for a sharper, modern monochrome look */
+  --color-slate-50: var(--color-zinc-50);
+  --color-slate-100: var(--color-zinc-100);
+  --color-slate-200: var(--color-zinc-200);
+  --color-slate-300: var(--color-zinc-300);
+  --color-slate-400: var(--color-zinc-400);
+  --color-slate-500: var(--color-zinc-500);
+  --color-slate-600: var(--color-zinc-600);
+  --color-slate-700: var(--color-zinc-700);
+  --color-slate-800: var(--color-zinc-800);
+  --color-slate-900: var(--color-zinc-900);
+  --color-slate-950: var(--color-zinc-950);
+}
+
+@layer base {
+  body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    @apply bg-zinc-50 text-zinc-900;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display tracking-tight text-zinc-950;
+  }
+}
