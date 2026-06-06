@@ -1,0 +1,15 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '--no-cache', '-t', 'us-west2-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/klarity/klarity:$COMMIT_SHA', '.']
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'us-west2-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/klarity/klarity:$COMMIT_SHA']
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'services'
+      - 'update'
+      - 'klarity'
+      - '--image=us-west2-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/klarity/klarity:$COMMIT_SHA'
+      - '--region=us-west2'
+      - '--port=3000'
