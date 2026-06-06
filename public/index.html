@@ -1,0 +1,2437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>J5 Therapy — Staff Enrollment Portal v3 (Claim.MD)</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;color:#2d3748;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+/* API Status */
+.api-status{display:flex;align-items:center;gap:5px;font-size:.7rem;padding:3px 9px;border-radius:12px;border:1px solid rgba(255,255,255,.2);cursor:pointer;transition:background .15s}
+.api-status:hover{background:rgba(255,255,255,.1)}
+.api-dot{width:7px;height:7px;border-radius:50%;background:#a0aec0;flex-shrink:0}
+.api-dot.connected{background:#68d391}.api-dot.error{background:#fc8181}.api-dot.checking{animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+/* Topbar */
+.topbar{background:linear-gradient(135deg,#1a4d8a,#2b6cb0);color:#fff;padding:0 20px;height:50px;display:flex;align-items:center;gap:12px;flex-shrink:0}
+.topbar-logo{font-weight:700;font-size:.95rem;display:flex;align-items:center;gap:7px}
+.topbar-logo span{opacity:.65;font-weight:400;font-size:.75rem}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.topbar-user{font-size:.78rem;opacity:.9;display:flex;align-items:center;gap:6px}
+.user-av{width:26px;height:26px;background:rgba(255,255,255,.25);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700}
+.tbtn{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.2);color:#fff;padding:4px 10px;border-radius:6px;font-size:.72rem;cursor:pointer;transition:background .15s}
+.tbtn:hover{background:rgba(255,255,255,.25)}
+/* Shell */
+.shell{display:flex;flex:1;overflow:hidden}
+/* Sidebar */
+.sidebar{width:196px;background:#1e3a5f;display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
+.sb-sect{padding:14px 0 3px 14px;font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:rgba(255,255,255,.35)}
+.nav{display:flex;align-items:center;gap:9px;padding:8px 14px;color:rgba(255,255,255,.7);cursor:pointer;font-size:.8rem;transition:all .12s;border-left:3px solid transparent;user-select:none}
+.nav:hover{background:rgba(255,255,255,.07);color:#fff}
+.nav.active{background:rgba(255,255,255,.11);color:#fff;border-left-color:#63b3ed}
+.nav .ic{font-size:.95rem;width:18px;text-align:center}
+.nbadge{margin-left:auto;background:#e53e3e;color:#fff;font-size:.6rem;font-weight:700;padding:1px 5px;border-radius:8px;min-width:16px;text-align:center}
+.nbadge.y{background:#d69e2e}
+.sb-bot{margin-top:auto;padding:10px 0;border-top:1px solid rgba(255,255,255,.08)}
+/* Main */
+.main{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:16px}
+/* AI Panel */
+.aip{width:300px;background:#fff;border-left:1px solid #e2e8f0;display:flex;flex-direction:column;flex-shrink:0;transition:width .2s}
+.aip.collapsed{width:0;overflow:hidden}
+.aip-hdr{padding:12px 14px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;gap:7px;flex-shrink:0;background:linear-gradient(135deg,#ebf8ff,#e6fffa)}
+.aip-title{font-weight:700;font-size:.82rem;color:#2b6cb0;flex:1}
+.ai-msgs{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:8px}
+.ai-msgs::-webkit-scrollbar{width:3px}
+.ai-msgs::-webkit-scrollbar-thumb{background:#cbd5e0;border-radius:3px}
+.am{max-width:92%;font-size:.78rem;line-height:1.5;padding:8px 10px;border-radius:10px}
+.am.bot{background:#f0f4f8;color:#2d3748;align-self:flex-start;border-bottom-left-radius:2px}
+.am.user{background:linear-gradient(135deg,#2b6cb0,#1a4d8a);color:#fff;align-self:flex-end;border-bottom-right-radius:2px}
+.ai-chips{display:flex;flex-wrap:wrap;gap:4px;padding:3px 0}
+.aic{padding:3px 8px;border:1.5px solid #2b6cb0;color:#2b6cb0;border-radius:10px;font-size:.7rem;cursor:pointer;background:#fff;transition:all .12s;white-space:nowrap}
+.aic:hover{background:#2b6cb0;color:#fff}
+.ai-inp-area{padding:8px 10px;border-top:1px solid #e2e8f0;display:flex;gap:5px;flex-shrink:0}
+.ai-inp{flex:1;border:1.5px solid #e2e8f0;border-radius:14px;padding:6px 11px;font-size:.78rem;font-family:inherit;outline:none;transition:border .12s}
+.ai-inp:focus{border-color:#2b6cb0}
+.ai-send-btn{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#2b6cb0,#1a4d8a);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ai-send-btn svg{width:14px;height:14px;fill:#fff}
+.tdot{width:6px;height:6px;background:#a0aec0;border-radius:50%;animation:bou 1.2s infinite}
+.tdot:nth-child(2){animation-delay:.2s}.tdot:nth-child(3){animation-delay:.4s}
+@keyframes bou{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-4px)}}
+/* Cards */
+.ph{display:flex;align-items:center;gap:10px;margin-bottom:2px}
+.pt{font-size:1.1rem;font-weight:700;color:#1a4d8a}
+.ps{font-size:.77rem;color:#718096;margin-top:1px}
+.pa{margin-left:auto;display:flex;gap:7px}
+.card{background:#fff;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.07);overflow:hidden}
+.ch{padding:12px 16px;border-bottom:1px solid #f0f4f8;display:flex;align-items:center;gap:7px}
+.ct{font-weight:700;font-size:.85rem;color:#2d3748}
+.cb{padding:14px 16px}
+/* Stats */
+.sg{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.sc{background:#fff;border-radius:10px;padding:14px;box-shadow:0 1px 4px rgba(0,0,0,.07);border-top:3px solid transparent}
+.sc.bl{border-top-color:#2b6cb0}.sc.gr{border-top-color:#38a169}.sc.or{border-top-color:#dd6b20}.sc.re{border-top-color:#e53e3e}
+.sl{font-size:.68rem;color:#718096;font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+.sv{font-size:1.7rem;font-weight:700;color:#2d3748;line-height:1;margin:4px 0 2px}
+.ss{font-size:.68rem;color:#a0aec0}
+/* Table */
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.8rem}
+thead th{background:#f7fafc;padding:8px 11px;text-align:left;font-weight:600;color:#4a5568;border-bottom:2px solid #e2e8f0;white-space:nowrap}
+tbody td{padding:9px 11px;border-bottom:1px solid #f0f4f8;color:#2d3748;vertical-align:middle}
+tbody tr:hover{background:#f7fafc}
+tbody tr:last-child td{border-bottom:none}
+/* Badges */
+.b{display:inline-flex;align-items:center;padding:2px 8px;border-radius:9px;font-size:.68rem;font-weight:600;white-space:nowrap}
+.bn{background:#ebf8ff;color:#2b6cb0}.bp{background:#fef3c7;color:#92400e}.bv{background:#f0fff4;color:#276749}
+.br{background:#fff5f5;color:#c53030}.ba{background:#f0fff4;color:#276749}.be{background:#fffbeb;color:#744210}
+.bd{background:#fff5f5;color:#c53030}.bca{background:#f0fff4;color:#276749}.bcp{background:#fef3c7;color:#92400e}
+.bcd{background:#fff5f5;color:#c53030}.bcc{background:#ebf8ff;color:#2b6cb0}
+/* Buttons */
+.btn{padding:6px 13px;border-radius:7px;font-size:.76rem;font-weight:600;cursor:pointer;border:none;transition:all .12s;display:inline-flex;align-items:center;gap:4px}
+.btn-p{background:linear-gradient(135deg,#2b6cb0,#1a4d8a);color:#fff}.btn-p:hover{opacity:.9}
+.btn-o{background:#fff;border:1.5px solid #2b6cb0;color:#2b6cb0}.btn-o:hover{background:#ebf8ff}
+.btn-s{padding:3px 9px;font-size:.7rem}
+.btn-g{background:transparent;color:#4a5568;border:1.5px solid #e2e8f0}.btn-g:hover{background:#f7fafc}
+.btn-d{background:#fff5f5;color:#c53030;border:1.5px solid #fed7d7}.btn-d:hover{background:#fed7d7}
+/* Kanban */
+.kb{display:flex;gap:12px;overflow-x:auto;padding-bottom:6px}
+.kb::-webkit-scrollbar{height:3px}
+.kb::-webkit-scrollbar-thumb{background:#cbd5e0;border-radius:3px}
+.kc{min-width:180px;background:#f7fafc;border-radius:9px;padding:9px;flex-shrink:0}
+.kch{font-size:.7rem;font-weight:700;color:#4a5568;margin-bottom:8px;display:flex;align-items:center;gap:5px;text-transform:uppercase;letter-spacing:.4px}
+.kcount{background:#e2e8f0;color:#4a5568;font-size:.62rem;padding:1px 5px;border-radius:7px}
+.kcard{background:#fff;border-radius:7px;padding:9px;margin-bottom:7px;box-shadow:0 1px 3px rgba(0,0,0,.07);cursor:pointer;border-left:3px solid #a0aec0;transition:box-shadow .12s}
+.kcard:hover{box-shadow:0 3px 8px rgba(0,0,0,.11)}
+.kcard.ap{border-left-color:#38a169}.kcard.ex{border-left-color:#dd6b20}.kcard.de{border-left-color:#e53e3e}.kcard.pr{border-left-color:#d69e2e}
+.kt{font-size:.76rem;font-weight:600;color:#2d3748;margin-bottom:2px}
+.km{font-size:.68rem;color:#718096}
+.kf{display:flex;align-items:center;justify-content:space-between;margin-top:6px}
+.ktag{background:#ebf8ff;color:#2b6cb0;font-size:.62rem;padding:2px 6px;border-radius:7px;font-weight:600}
+/* Alert */
+.alert{border-radius:9px;padding:10px 14px;display:flex;align-items:flex-start;gap:9px;font-size:.78rem}
+.alert.or{background:#fffbeb;border:1px solid #f6d860;color:#744210}
+.alert.re{background:#fff5f5;border:1px solid #fed7d7;color:#c53030}
+.alert.bl{background:#ebf8ff;border:1px solid #bee3f8;color:#2c5282}
+/* Activity */
+.ait{display:flex;gap:9px;align-items:flex-start;padding:7px 0;border-bottom:1px solid #f0f4f8}
+.ait:last-child{border-bottom:none}
+.adot{width:7px;height:7px;border-radius:50%;background:#2b6cb0;margin-top:4px;flex-shrink:0}
+.adot.g{background:#38a169}.adot.o{background:#dd6b20}.adot.r{background:#e53e3e}
+.atx{font-size:.76rem;color:#4a5568;flex:1;line-height:1.4}
+.atm{font-size:.67rem;color:#a0aec0;white-space:nowrap}
+/* Progress */
+.pgb{height:5px;background:#e2e8f0;border-radius:3px;overflow:hidden;margin-top:3px}
+.pgf{height:100%;border-radius:3px;background:linear-gradient(90deg,#2b6cb0,#38a169)}
+/* Views */
+.view{display:none}.view.active{display:flex;flex-direction:column;gap:16px}
+/* Filter bar */
+.fb{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+.fi{border:1.5px solid #e2e8f0;border-radius:7px;padding:5px 11px;font-size:.78rem;font-family:inherit;outline:none;min-width:180px}
+.fi:focus{border-color:#2b6cb0}
+.fs{border:1.5px solid #e2e8f0;border-radius:7px;padding:5px 9px;font-size:.78rem;font-family:inherit;outline:none;background:#fff;cursor:pointer}
+.fs:focus{border-color:#2b6cb0}
+/* Stepper */
+.stepper{display:flex;align-items:center;gap:0;margin-bottom:20px}
+.step{display:flex;align-items:center;gap:6px;font-size:.75rem;font-weight:600;color:#a0aec0}
+.step.active{color:#2b6cb0}
+.step.done{color:#38a169}
+.step-num{width:24px;height:24px;border-radius:50%;background:#e2e8f0;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;flex-shrink:0}
+.step.active .step-num{background:#2b6cb0;color:#fff}
+.step.done .step-num{background:#38a169;color:#fff}
+.step-line{flex:1;height:2px;background:#e2e8f0;margin:0 4px}
+.step-line.done{background:#38a169}
+/* Workflow panels */
+.wp{background:#fff;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.07);padding:20px}
+.wpt{font-size:.95rem;font-weight:700;color:#1a4d8a;margin-bottom:4px}
+.wps{font-size:.78rem;color:#718096;margin-bottom:18px}
+.fg{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
+.fl{font-size:.75rem;font-weight:600;color:#4a5568}
+.finp{border:1.5px solid #e2e8f0;border-radius:7px;padding:8px 11px;font-size:.8rem;font-family:inherit;outline:none;transition:border .12s;width:100%}
+.finp:focus{border-color:#2b6cb0}
+.fsel{border:1.5px solid #e2e8f0;border-radius:7px;padding:8px 11px;font-size:.8rem;font-family:inherit;outline:none;background:#fff;width:100%;cursor:pointer}
+.fsel:focus{border-color:#2b6cb0}
+.fr2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fr3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.wact{display:flex;justify-content:flex-end;gap:8px;margin-top:18px;padding-top:14px;border-top:1px solid #f0f4f8}
+/* Results card */
+.rc{background:#f7fafc;border:1.5px solid #bee3f8;border-radius:10px;padding:14px;margin-bottom:12px}
+.rc-title{font-weight:700;font-size:.82rem;color:#2b6cb0;margin-bottom:10px;display:flex;align-items:center;gap:5px}
+.rc table{width:100%}
+.rc td{padding:3px 0;font-size:.78rem}
+.rc td:first-child{color:#4a5568;width:52%}
+.rc td:last-child{font-weight:600}
+.rc-warn{background:#fffbeb;border:1px solid #f6d860;border-radius:6px;padding:5px 9px;font-size:.73rem;color:#744210;margin-top:8px}
+.rc-ok{background:#f0fff4;border:1px solid #9ae6b4;border-radius:6px;padding:5px 9px;font-size:.73rem;color:#276749;margin-top:8px}
+.rc-err{background:#fff5f5;border:1px solid #fed7d7;border-radius:6px;padding:5px 9px;font-size:.73rem;color:#c53030;margin-top:8px}
+/* Checklist */
+.cl-item{display:flex;align-items:flex-start;gap:9px;padding:7px 0;border-bottom:1px solid #f0f4f8;font-size:.78rem}
+.cl-item:last-child{border-bottom:none}
+.cl-check{width:16px;height:16px;border:2px solid #cbd5e0;border-radius:3px;flex-shrink:0;margin-top:1px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .12s}
+.cl-check.checked{background:#38a169;border-color:#38a169;color:#fff}
+.cl-text{flex:1;line-height:1.4}
+.cl-tag{font-size:.65rem;background:#ebf8ff;color:#2b6cb0;padding:1px 6px;border-radius:6px;font-weight:600;margin-left:auto;white-space:nowrap}
+.cl-req{font-size:.65rem;background:#fff5f5;color:#c53030;padding:1px 6px;border-radius:6px;font-weight:600;margin-left:auto;white-space:nowrap}
+/* CPT table specifics */
+.cpt-disc{font-size:.7rem;color:#718096;margin-top:1px}
+.cpt-auth-y{color:#c53030;font-weight:600}
+.cpt-auth-n{color:#38a169;font-weight:600}
+.cpt-auth-m{color:#d69e2e;font-weight:600}
+/* Timeline */
+.tl{display:flex;flex-direction:column;gap:0}
+.tl-item{display:flex;gap:12px;padding-bottom:16px;position:relative}
+.tl-item:last-child{padding-bottom:0}
+.tl-item::before{content:'';position:absolute;left:15px;top:24px;bottom:0;width:2px;background:#e2e8f0}
+.tl-item:last-child::before{display:none}
+.tl-dot{width:30px;height:30px;border-radius:50%;background:#e2e8f0;display:flex;align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0;z-index:1}
+.tl-dot.done{background:#f0fff4;border:2px solid #38a169}
+.tl-dot.active{background:#ebf8ff;border:2px solid #2b6cb0}
+.tl-dot.pending{background:#f7fafc;border:2px solid #e2e8f0}
+.tl-body{flex:1;padding-top:4px}
+.tl-title{font-weight:600;font-size:.8rem;color:#2d3748}
+.tl-sub{font-size:.72rem;color:#718096;margin-top:2px}
+.tl-date{font-size:.7rem;color:#a0aec0}
+/* Modal */
+.modal-bd{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:1000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .18s}
+.modal-bd.open{opacity:1;pointer-events:all}
+.modal{background:#fff;border-radius:14px;width:500px;max-width:96vw;max-height:88vh;overflow-y:auto;box-shadow:0 20px 50px rgba(0,0,0,.2);transform:translateY(16px);transition:transform .18s}
+.modal-bd.open .modal{transform:translateY(0)}
+.mhdr{padding:16px 20px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;gap:7px}
+.mt{font-weight:700;font-size:.95rem;color:#1a4d8a;flex:1}
+.mc{background:none;border:none;cursor:pointer;color:#718096;font-size:1.1rem;padding:2px 5px}
+.mbody{padding:18px 20px;display:flex;flex-direction:column;gap:12px}
+.mfoot{padding:12px 20px;border-top:1px solid #e2e8f0;display:flex;justify-content:flex-end;gap:7px}
+/* Tabs */
+.tabs{display:flex;border-bottom:2px solid #e2e8f0;margin-bottom:16px}
+.tab{padding:8px 16px;font-size:.8rem;font-weight:600;color:#718096;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .12s}
+.tab.active{color:#2b6cb0;border-bottom-color:#2b6cb0}
+.tab:hover{color:#2b6cb0}
+.tab-panel{display:none}.tab-panel.active{display:block}
+/* CPT search */
+.cpt-search-wrap{position:relative}
+.cpt-results{position:absolute;top:100%;left:0;right:0;background:#fff;border:1.5px solid #2b6cb0;border-top:none;border-radius:0 0 8px 8px;max-height:200px;overflow-y:auto;z-index:100;display:none}
+.cpt-results.show{display:block}
+.cpt-opt{padding:8px 12px;font-size:.78rem;cursor:pointer;border-bottom:1px solid #f0f4f8}
+.cpt-opt:hover{background:#ebf8ff}
+.cpt-opt:last-child{border-bottom:none}
+.cpt-opt-code{font-weight:700;color:#2b6cb0;margin-right:8px}
+</style>
+</head>
+<body>
+
+<!-- Topbar -->
+<div class="topbar">
+  <div class="topbar-logo">🏥 J5 Therapy <span>| Staff Enrollment Portal</span></div>
+  <div class="topbar-right">
+    <div class="api-status" id="api-status-btn" onclick="go('settings',document.querySelector('[onclick*=settings]'))" title="Claim.MD connection status — click to configure">
+      <div class="api-dot checking" id="api-dot"></div>
+      <span id="api-status-label">Claim.MD…</span>
+    </div>
+    <div class="topbar-user"><div class="user-av">JS</div> Jane S. <span style="opacity:.55;font-size:.7rem;margin-left:2px">Enrollment Specialist</span></div>
+    <button class="tbtn" onclick="toggleAI()">🤖 AI Assistant</button>
+  </div>
+</div>
+
+<div class="shell">
+<!-- Sidebar -->
+<nav class="sidebar">
+  <div class="sb-sect">Main</div>
+  <div class="nav active" onclick="go('dashboard',this)"><span class="ic">📊</span>Dashboard</div>
+  <div class="nav" onclick="go('cases',this)"><span class="ic">📋</span>Case Queue<span class="nbadge">7</span></div>
+  <div class="sb-sect">Workflows</div>
+  <div class="nav" onclick="go('eligibility',this)"><span class="ic">✅</span>Eligibility Check</div>
+  <div class="nav" onclick="go('auth',this)"><span class="ic">🔐</span>Prior Auth<span class="nbadge y">3</span></div>
+  <div class="nav" onclick="go('credentialing',this)"><span class="ic">🏅</span>Credentialing</div>
+  <div class="sb-sect">Claim.MD</div>
+  <div class="nav" onclick="go('era',this)"><span class="ic">💳</span>ERA / Remittance</div>
+  <div class="nav" onclick="go('claimstatus',this)"><span class="ic">🔍</span>Claim Status</div>
+  <div class="sb-sect">Reference</div>
+  <div class="nav" onclick="go('cpt',this)"><span class="ic">📖</span>CPT Code DB</div>
+  <div class="nav" onclick="go('payers',this)"><span class="ic">🏦</span>Payer DB</div>
+  <div class="sb-bot">
+    <div class="nav" onclick="go('settings',this)"><span class="ic">⚙️</span>API Settings</div>
+    <div class="nav" style="color:rgba(255,255,255,.4);font-size:.72rem"><span class="ic">🔒</span>HIPAA-Secure</div>
+  </div>
+</nav>
+
+<!-- Main -->
+<main class="main" id="main">
+
+<!-- ═══ DASHBOARD ═══ -->
+<div class="view active" id="view-dashboard">
+  <div class="ph">
+    <div><div class="pt" id="dash-greeting">Welcome to J5 Therapy Portal</div><div class="ps" id="dash-date"></div></div>
+    <div class="pa">
+      <button class="btn btn-p" onclick="go('eligibility',document.querySelector('[onclick*=eligibility]'))">+ Eligibility Check</button>
+      <button class="btn btn-o" onclick="go('auth',document.querySelector('[onclick*=auth]'))">+ Auth Request</button>
+    </div>
+  </div>
+  <div class="sg">
+    <div class="sc bl" style="cursor:pointer" onclick="go('cases',document.querySelector('[onclick*=cases]'))" title="View Case Queue"><div class="sl">Verifications Today</div><div class="sv" id="stat-verifications">—</div><div class="ss">Run eligibility checks to track</div></div>
+    <div class="sc or" style="cursor:pointer" onclick="go('auth',document.querySelector('[onclick*=auth]'))" title="View Auth Board"><div class="sl">Pending Auths</div><div class="sv" id="stat-auths">—</div><div class="ss">Add auths to the board to track</div></div>
+    <div class="sc re" style="cursor:pointer" onclick="go('auth',document.querySelector('[onclick*=auth]'))" title="View Expiring Auths"><div class="sl">Expiring ≤ 30 Days</div><div class="sv" id="stat-expiring">—</div><div class="ss">Auth board tracks expiry</div></div>
+    <div class="sc gr" style="cursor:pointer" onclick="go('credentialing',document.querySelector('[onclick*=credentialing]'))" title="View Credentialing"><div class="sl">Active Providers</div><div class="sv" id="stat-providers">—</div><div class="ss">Add providers via Credentialing</div></div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+    <div class="card">
+      <div class="ch"><span>📋</span><div class="ct">Open Cases</div><button class="btn btn-s btn-g" style="margin-left:auto" onclick="go('cases',document.querySelector('[onclick*=cases]'))">View all</button></div>
+      <div style="padding:20px;text-align:center;color:#a0aec0;font-size:.82rem">
+        <div style="font-size:1.4rem;margin-bottom:6px">📋</div>
+        No cases yet. Run an eligibility check to create your first case.
+        <div style="margin-top:10px"><button class="btn btn-p btn-s" onclick="go('eligibility',document.querySelector('[onclick*=eligibility]'))">+ New Eligibility Check</button></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ch"><span>⚡</span><div class="ct">Recent Activity</div></div>
+      <div class="cb" style="padding:20px;text-align:center;color:#a0aec0;font-size:.82rem">
+        <div style="font-size:1.4rem;margin-bottom:6px">⚡</div>
+        No recent activity. Actions taken in the portal will appear here.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ CASE QUEUE ═══ -->
+<div class="view" id="view-cases">
+  <div class="ph"><div><div class="pt">📋 Case Queue</div><div class="ps">All open and recent verification cases</div></div>
+    <div class="pa"><button class="btn btn-p" onclick="go('eligibility',document.querySelector('[onclick*=eligibility]'))">+ New Case</button></div></div>
+  <div class="card">
+    <div class="ch"><div class="fb">
+      <input class="fi" placeholder="🔍 Search by client, case ID, or payer…"/>
+      <select class="fs"><option>All Statuses</option><option>New</option><option>In Progress</option><option>Verified</option><option>Needs Review</option></select>
+      <select class="fs"><option>All Payers</option><option>BCBS AR</option><option>Aetna</option><option>Cigna</option><option>United</option><option>AR Medicaid</option></select>
+    </div></div>
+    <div class="tw"><table><thead><tr><th>Case ID</th><th>Client</th><th>Payer</th><th>Member ID</th><th>Service Type</th><th>Created</th><th>Assigned</th><th>Status</th><th>Actions</th></tr></thead><tbody id="case-queue-tbody">
+      <tr><td colspan="9" style="text-align:center;padding:28px;color:#a0aec0;font-size:.82rem">No cases yet. Run an eligibility check to create your first case.</td></tr>
+    </tbody></table></div>
+  </div>
+</div>
+
+<!-- ═══ ELIGIBILITY CHECK ═══ -->
+<div class="view" id="view-eligibility">
+  <div class="ph"><div><div class="pt">✅ Eligibility Check</div><div class="ps">Run a real-time insurance eligibility and benefits verification</div></div></div>
+  <div class="wp">
+    <!-- Stepper -->
+    <div class="stepper" id="elig-stepper">
+      <div class="step active" id="estep-1"><div class="step-num">1</div>Client & Plan Info</div>
+      <div class="step-line" id="eline-1"></div>
+      <div class="step" id="estep-2"><div class="step-num">2</div>Service Details</div>
+      <div class="step-line" id="eline-2"></div>
+      <div class="step" id="estep-3"><div class="step-num">3</div>Results</div>
+      <div class="step-line" id="eline-3"></div>
+      <div class="step" id="estep-4"><div class="step-num">4</div>Save to Case</div>
+    </div>
+
+    <!-- Step 1 -->
+    <div id="elig-s1">
+      <div class="wpt">Step 1 — Client & Insurance Information</div>
+      <div class="wps">Enter the client's insurance details. Only minimum necessary information is collected.</div>
+      <div class="fr3">
+        <div class="fg"><label class="fl">Client First Name</label><input class="finp" id="e-fname" placeholder="First name"/></div>
+        <div class="fg"><label class="fl">Client Last Name</label><input class="finp" id="e-lname" placeholder="Last name"/></div>
+        <div class="fg"><label class="fl">Insurance Carrier</label>
+          <select class="fsel" id="e-carrier">
+            <option value="">— Select payer —</option>
+            <option>BCBS Arkansas</option><option>Aetna</option><option>Cigna</option>
+            <option>United Healthcare / Optum</option><option>Arkansas Medicaid</option>
+            <option>Ambetter Arkansas</option><option>QualChoice Arkansas</option><option>Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="fr2">
+        <div class="fg"><label class="fl">Member ID</label><input class="finp" id="e-memberid" placeholder="As shown on insurance card"/></div>
+        <div class="fg"><label class="fl">Subscriber Date of Birth</label><input class="finp" type="date" id="e-dob"/></div>
+      </div>
+      <div class="fr2">
+        <div class="fg"><label class="fl">Group Number (if applicable)</label><input class="finp" id="e-group" placeholder="Optional"/></div>
+        <div class="fg"><label class="fl">Relationship to Subscriber</label>
+          <select class="fsel" id="e-rel"><option>Self</option><option>Spouse</option><option>Child / Dependent</option><option>Other</option></select>
+        </div>
+      </div>
+      <div class="fg"><label class="fl">Secondary Insurance?</label>
+        <select class="fsel" id="e-secondary"><option>No secondary insurance</option><option>Yes — enter secondary below</option></select>
+      </div>
+      <div class="wact"><button class="btn btn-p" onclick="eligNext(2)">Next: Service Details →</button></div>
+    </div>
+
+    <!-- Step 2 -->
+    <div id="elig-s2" style="display:none">
+      <div class="wpt">Step 2 — Service Details</div>
+      <div class="wps">Select the service type and CPT codes to verify. This determines auth thresholds and benefit specifics.</div>
+      <div class="fr2">
+        <div class="fg"><label class="fl">Service / Therapy Type</label>
+          <select class="fsel" id="e-svctype" onchange="loadCptOptions();loadEligDiagCodes()">
+            <option value="">— Select service type —</option>
+            <option value="speech">Speech Therapy</option>
+            <option value="ot">Occupational Therapy</option>
+            <option value="aba">ABA Therapy</option>
+            <option value="mh">Mental Health / Behavioral Health</option>
+            <option value="psych">Psychological Testing</option>
+          </select>
+        </div>
+        <div class="fg"><label class="fl">CPT Code(s)</label>
+          <select class="fsel" id="e-cpt" multiple style="height:90px"></select>
+          <div style="font-size:.68rem;color:#a0aec0;margin-top:3px">Hold Ctrl/Cmd to select multiple</div>
+        </div>
+      </div>
+      <div class="fr2">
+        <div class="fg"><label class="fl">Primary ICD-10 Diagnosis Code</label>
+          <select class="fsel" id="e-icd">
+            <option value="">— Select service type first —</option>
+          </select>
+          <div style="font-size:.68rem;color:#a0aec0;margin-top:3px">Common codes populate automatically based on service type</div>
+        </div>
+        <div class="fg"><label class="fl">Secondary ICD-10 (optional)</label>
+          <select class="fsel" id="e-icd2">
+            <option value="">— Optional secondary —</option>
+          </select>
+        </div>
+      </div>
+      <div class="fr2">
+        <div class="fg"><label class="fl">Rendering Provider NPI</label><input class="finp" id="e-npi" placeholder="Type 1 NPI"/></div>
+        <div class="fg"><label class="fl">Expected Service Start Date</label><input class="finp" type="date" id="e-startdate"/></div>
+      </div>
+      <div class="fg"><label class="fl">Assign to Staff Member</label>
+        <select class="fsel"><option>Jane S.</option><option>Marcus R.</option><option>Priya N.</option></select>
+      </div>
+      <div class="wact">
+        <button class="btn btn-g" onclick="eligNext(1)">← Back</button>
+        <button class="btn btn-p" onclick="eligNext(3)">Run Eligibility Check →</button>
+      </div>
+    </div>
+
+    <!-- Step 3 — Results -->
+    <div id="elig-s3" style="display:none">
+      <div class="wpt">Step 3 — Eligibility Results</div>
+      <div class="wps" id="elig-result-sub">Verified via clearinghouse · May 27, 2026 9:22 AM · Ref #: VRF-104601</div>
+      <div id="elig-results-area"></div>
+      <div class="wact">
+        <button class="btn btn-g" onclick="eligNext(2)">← Modify Search</button>
+        <button class="btn btn-p" onclick="eligNext(4)">Save to Case File →</button>
+      </div>
+    </div>
+
+    <!-- Step 4 — Save -->
+    <div id="elig-s4" style="display:none">
+      <div class="wpt">Step 4 — Save to Case File</div>
+      <div class="wps">The verification record will be saved with the payer rep name, reference number, date/time, and your staff ID.</div>
+      <div class="fr2">
+        <div class="fg"><label class="fl">Payer Rep Name (if manual call)</label><input class="finp" placeholder="Enter if verified by phone"/></div>
+        <div class="fg"><label class="fl">Reference Number</label><input class="finp" value="VRF-104601"/></div>
+      </div>
+      <div class="fr2">
+        <div class="fg"><label class="fl">Link to Existing Case #</label><input class="finp" placeholder="e.g. 1090 (leave blank to create new)"/></div>
+        <div class="fg"><label class="fl">Notes</label><input class="finp" placeholder="Any follow-up notes…"/></div>
+      </div>
+      <div class="alert bl" style="margin-top:8px">ℹ️ This verification record will be stored in the secure backend. No PHI will be retained in chat logs or browser storage.</div>
+      <div class="wact">
+        <button class="btn btn-g" onclick="eligNext(3)">← Back to Results</button>
+        <button class="btn btn-p" onclick="eligSave()">✅ Save Verification Record</button>
+      </div>
+    </div>
+
+    <!-- Step 4 Complete -->
+    <div id="elig-s4-done" style="display:none;text-align:center;padding:30px 0">
+      <div style="font-size:2.5rem;margin-bottom:10px">✅</div>
+      <div style="font-weight:700;font-size:1rem;color:#276749;margin-bottom:6px">Verification Saved!</div>
+      <div style="font-size:.8rem;color:#718096;margin-bottom:20px">Case #1094 updated · Ref #VRF-104601 · Assigned to Jane S.</div>
+      <div style="display:flex;gap:8px;justify-content:center">
+        <button class="btn btn-o" onclick="go('auth',document.querySelector('[onclick*=auth]'))">Run Prior Auth Check</button>
+        <button class="btn btn-p" onclick="resetElig()">+ New Eligibility Check</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PRIOR AUTH ═══ -->
+<div class="view" id="view-auth">
+  <div class="ph"><div><div class="pt">🔐 Prior Authorization</div><div class="ps">Check requirements, generate checklists, and track auth status</div></div>
+    <div class="pa"><button class="btn btn-p" onclick="showAuthWorkflow()">+ New Auth Request</button></div></div>
+
+  <div id="auth-expiry-alerts"></div>
+
+  <!-- Auth Workflow (hidden by default, shown on New Auth) -->
+  <div id="auth-workflow" style="display:none">
+    <div class="wp">
+      <div class="stepper">
+        <div class="step active" id="astep-1"><div class="step-num">1</div>Payer & Service</div>
+        <div class="step-line" id="aline-1"></div>
+        <div class="step" id="astep-2"><div class="step-num">2</div>Auth Check</div>
+        <div class="step-line" id="aline-2"></div>
+        <div class="step" id="astep-3"><div class="step-num">3</div>Checklist</div>
+        <div class="step-line" id="aline-3"></div>
+        <div class="step" id="astep-4"><div class="step-num">4</div>Track & Submit</div>
+      </div>
+
+      <div id="auth-s1">
+        <div class="wpt">Step 1 — Payer & Service Information</div>
+        <div class="wps">Select the payer, service type, and CPT code(s) to check authorization requirements.</div>
+        <div class="fr2">
+          <div class="fg"><label class="fl">Payer</label>
+            <select class="fsel" id="a-payer">
+              <option value="">— Select payer —</option>
+              <option>BCBS Arkansas</option><option>Aetna</option><option>Cigna</option>
+              <option>United Healthcare / Optum</option><option>Arkansas Medicaid</option>
+              <option>Ambetter Arkansas</option><option>QualChoice Arkansas</option>
+            </select>
+          </div>
+          <div class="fg"><label class="fl">Service Type</label>
+            <select class="fsel" id="a-svctype" onchange="loadAuthCptOptions();loadAuthDiagCodes()">
+              <option value="">— Select type —</option>
+              <option value="speech">Speech Therapy</option>
+              <option value="ot">Occupational Therapy</option>
+              <option value="aba">ABA Therapy</option>
+              <option value="mh">Mental Health</option>
+              <option value="psych">Psychological Testing</option>
+            </select>
+          </div>
+        </div>
+        <div class="fr2">
+          <div class="fg"><label class="fl">CPT Code</label>
+            <select class="fsel" id="a-cpt"><option value="">— Select CPT —</option></select>
+          </div>
+          <div class="fg"><label class="fl">Primary ICD-10 Diagnosis</label>
+            <select class="fsel" id="a-icd">
+              <option value="">— Select service type first —</option>
+            </select>
+            <div style="font-size:.68rem;color:#a0aec0;margin-top:3px">Common codes populate automatically</div>
+          </div>
+        </div>
+        <div class="fr2">
+          <div class="fg"><label class="fl">Sessions Requested</label><input class="finp" id="a-sessions" type="number" placeholder="e.g. 12"/></div>
+          <div class="fg"><label class="fl">Case / Client Reference</label><input class="finp" id="a-case" placeholder="Case # or client name"/></div>
+        </div>
+        <div class="wact">
+          <button class="btn btn-g" onclick="hideAuthWorkflow()">Cancel</button>
+          <button class="btn btn-p" onclick="authNext(2)">Check Auth Requirements →</button>
+        </div>
+      </div>
+
+      <div id="auth-s2" style="display:none">
+        <div class="wpt">Step 2 — Authorization Requirement Check</div>
+        <div id="auth-req-result"></div>
+        <div class="wact">
+          <button class="btn btn-g" onclick="authNext(1)">← Back</button>
+          <button class="btn btn-p" onclick="authNext(3)">Generate Checklist →</button>
+        </div>
+      </div>
+
+      <div id="auth-s3" style="display:none">
+        <div class="wpt">Step 3 — Prior Auth Checklist</div>
+        <div class="wps">Complete all required fields before submitting. An authorized staff member must review before submission.</div>
+        <div id="auth-checklist-area"></div>
+        <div class="wact">
+          <button class="btn btn-g" onclick="authNext(2)">← Back</button>
+          <button class="btn btn-o" onclick="authNext(4)">Mark Ready for Review</button>
+          <button class="btn btn-p" onclick="authNext(4)">Save & Track Submission →</button>
+        </div>
+      </div>
+
+      <div id="auth-s4" style="display:none">
+        <div class="wpt">Step 4 — Track & Submit</div>
+        <div class="wps">Log submission details and track the authorization through to approval.</div>
+        <div class="fr2">
+          <div class="fg"><label class="fl">Submission Method</label>
+            <select class="fsel"><option>Availity Portal</option><option>Payer Portal (direct)</option><option>Fax</option><option>Phone</option></select>
+          </div>
+          <div class="fg"><label class="fl">Submitted Date</label><input class="finp" type="date"/></div>
+        </div>
+        <div class="fr2">
+          <div class="fg"><label class="fl">Submitted By</label>
+            <select class="fsel"><option>Jane S.</option><option>Marcus R.</option><option>Priya N.</option></select>
+          </div>
+          <div class="fg"><label class="fl">Expected Response By</label><input class="finp" type="date"/></div>
+        </div>
+        <div class="fg"><label class="fl">Auth Number (enter when received)</label><input class="finp" placeholder="Leave blank until payer responds"/></div>
+        <div class="alert bl" style="margin-top:8px">ℹ️ This request will appear on the Auth Board as <strong>"Submitted — Awaiting Response"</strong> until you log the payer's decision.</div>
+        <div class="wact">
+          <button class="btn btn-g" onclick="authNext(3)">← Back</button>
+          <button class="btn btn-p" onclick="authSave()">✅ Save to Auth Board</button>
+        </div>
+      </div>
+
+      <div id="auth-s4-done" style="display:none;text-align:center;padding:24px 0">
+        <div style="font-size:2rem;margin-bottom:8px">🔐</div>
+        <div style="font-weight:700;font-size:.95rem;color:#2b6cb0;margin-bottom:4px">Added to Auth Board!</div>
+        <div style="font-size:.78rem;color:#718096;margin-bottom:18px">Status set to "Submitted — Awaiting Response" · Reminder set for response deadline.</div>
+        <div style="display:flex;gap:8px;justify-content:center">
+          <button class="btn btn-o" onclick="hideAuthWorkflow()">View Auth Board</button>
+          <button class="btn btn-p" onclick="resetAuth()">+ New Auth Request</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Auth Board Kanban -->
+  <div id="auth-board">
+    <div class="kb">
+      <div class="kc"><div class="kch">📝 To Do <span class="kcount" id="kcount-todo">0</span></div>
+        <div id="kcol-todo" style="padding:10px;text-align:center;color:#a0aec0;font-size:.78rem;min-height:60px">No items. Click + New Auth Request to add one.</div>
+      </div>
+      <div class="kc"><div class="kch" style="color:#d69e2e">⏳ Submitted <span class="kcount" id="kcount-submitted">0</span></div>
+        <div id="kcol-submitted" style="padding:10px;text-align:center;color:#a0aec0;font-size:.78rem;min-height:60px">No submissions yet.</div>
+      </div>
+      <div class="kc"><div class="kch" style="color:#38a169">✅ Approved <span class="kcount" id="kcount-approved">0</span></div>
+        <div id="kcol-approved" style="padding:10px;text-align:center;color:#a0aec0;font-size:.78rem;min-height:60px">No approved auths yet.</div>
+      </div>
+      <div class="kc"><div class="kch" style="color:#dd6b20">⚠️ Expiring <span class="kcount" id="kcount-expiring">0</span></div>
+        <div id="kcol-expiring" style="padding:10px;text-align:center;color:#a0aec0;font-size:.78rem;min-height:60px">No auths expiring soon.</div>
+      </div>
+      <div class="kc"><div class="kch" style="color:#c53030">🚫 Denied <span class="kcount" id="kcount-denied">0</span></div>
+        <div id="kcol-denied" style="padding:10px;text-align:center;color:#a0aec0;font-size:.78rem;min-height:60px">No denied auths.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ CREDENTIALING ═══ -->
+<div class="view" id="view-credentialing">
+  <div class="ph"><div><div class="pt">🏅 Credentialing</div><div class="ps">Provider enrollment, document tracking, and re-credentialing management</div></div>
+    <div class="pa"><button class="btn btn-p" onclick="showCredWorkflow()">+ Add Provider</button></div></div>
+
+  <div id="cred-expiry-alerts"></div>
+
+  <!-- Credentialing Workflow -->
+  <div id="cred-workflow" style="display:none">
+    <div class="wp">
+      <div class="stepper">
+        <div class="step active" id="cstep-1"><div class="step-num">1</div>Provider Info</div>
+        <div class="step-line"></div>
+        <div class="step" id="cstep-2"><div class="step-num">2</div>Documents</div>
+        <div class="step-line"></div>
+        <div class="step" id="cstep-3"><div class="step-num">3</div>Payer Apps</div>
+        <div class="step-line"></div>
+        <div class="step" id="cstep-4"><div class="step-num">4</div>Timeline</div>
+      </div>
+
+      <div id="cred-s1">
+        <div class="wpt">Step 1 — Provider Information</div>
+        <div class="wps">Enter the provider's professional details. All fields are required for credentialing applications.</div>
+        <div class="fr2">
+          <div class="fg"><label class="fl">Provider Full Name</label><input class="finp" id="c-name" placeholder="e.g. Dr. Maria Lopez"/></div>
+          <div class="fg"><label class="fl">Credential / License Type</label>
+            <select class="fsel" id="c-cred">
+              <option>LCSW — Licensed Clinical Social Worker</option>
+              <option>LPC — Licensed Professional Counselor</option>
+              <option>BCBA — Board Certified Behavior Analyst</option>
+              <option>SLP — Speech-Language Pathologist</option>
+              <option>OTR/L — Occupational Therapist Registered/Licensed</option>
+              <option>PhD — Licensed Psychologist</option>
+              <option>MD/DO — Psychiatrist</option>
+            </select>
+          </div>
+        </div>
+        <div class="fr2">
+          <div class="fg"><label class="fl">NPI (Type 1)</label><input class="finp" id="c-npi" placeholder="10-digit NPI"/></div>
+          <div class="fg"><label class="fl">CAQH Provider ID</label><input class="finp" id="c-caqh" placeholder="8-digit CAQH ID"/></div>
+        </div>
+        <div class="fr2">
+          <div class="fg"><label class="fl">State License Number</label><input class="finp" placeholder="e.g. AR-LCSW-12345"/></div>
+          <div class="fg"><label class="fl">License Expiration Date</label><input class="finp" type="date"/></div>
+        </div>
+        <div class="fr2">
+          <div class="fg"><label class="fl">Taxonomy Code</label><input class="finp" id="c-taxonomy" placeholder="e.g. 106H00000X"/></div>
+          <div class="fg"><label class="fl">Specialty</label>
+            <select class="fsel">
+              <option>Behavioral Health / Mental Health</option>
+              <option>Speech-Language Pathology</option>
+              <option>Occupational Therapy</option>
+              <option>Applied Behavior Analysis (ABA)</option>
+              <option>Psychology</option>
+              <option>Psychiatry</option>
+            </select>
+          </div>
+        </div>
+        <div class="fg"><label class="fl">Target Payers (select all that apply)</label>
+          <select class="fsel" multiple style="height:90px">
+            <option>BCBS Arkansas</option><option>Aetna</option><option>Cigna</option>
+            <option>United Healthcare / Optum</option><option>Arkansas Medicaid</option>
+            <option>Ambetter Arkansas</option><option>QualChoice Arkansas</option>
+          </select>
+          <div style="font-size:.68rem;color:#a0aec0;margin-top:3px">Hold Ctrl/Cmd to select multiple</div>
+        </div>
+        <div class="wact">
+          <button class="btn btn-g" onclick="hideCredWorkflow()">Cancel</button>
+          <button class="btn btn-p" onclick="credNext(2)">Next: Document Checklist →</button>
+        </div>
+      </div>
+
+      <div id="cred-s2" style="display:none">
+        <div class="wpt">Step 2 — Document Checklist</div>
+        <div class="wps">Check off each document as it is received and verified. All items must be complete before submitting to payers.</div>
+        <div id="cred-doclist">
+          <!-- JS-rendered checklist -->
+        </div>
+        <div class="wact">
+          <button class="btn btn-g" onclick="credNext(1)">← Back</button>
+          <button class="btn btn-p" onclick="credNext(3)">Next: Payer Applications →</button>
+        </div>
+      </div>
+
+      <div id="cred-s3" style="display:none">
+        <div class="wpt">Step 3 — Payer Application Status</div>
+        <div class="wps">Track the application status for each target payer. Do not submit without authorized staff approval.</div>
+        <div class="tw"><table><thead><tr><th>Payer</th><th>Portal</th><th>Submitted Date</th><th>Status</th><th>Notes</th></tr></thead><tbody id="cred-payer-table">
+          <tr><td>BCBS Arkansas</td><td>availity.com</td><td><input class="finp" type="date" style="padding:3px 7px;font-size:.72rem"/></td><td><select class="fsel" style="font-size:.72rem;padding:3px 7px"><option>Not Started</option><option>Docs Collecting</option><option>Submitted</option><option>Pending Review</option><option>Approved</option><option>Denied</option></select></td><td><input class="finp" placeholder="Notes…" style="padding:3px 7px;font-size:.72rem"/></td></tr>
+          <tr><td>Aetna</td><td>availity.com</td><td><input class="finp" type="date" style="padding:3px 7px;font-size:.72rem"/></td><td><select class="fsel" style="font-size:.72rem;padding:3px 7px"><option>Not Started</option><option>Docs Collecting</option><option>Submitted</option><option>Pending Review</option><option>Approved</option><option>Denied</option></select></td><td><input class="finp" placeholder="Notes…" style="padding:3px 7px;font-size:.72rem"/></td></tr>
+          <tr><td>AR Medicaid</td><td>medicaid.mmis.com</td><td><input class="finp" type="date" style="padding:3px 7px;font-size:.72rem"/></td><td><select class="fsel" style="font-size:.72rem;padding:3px 7px"><option>Not Started</option><option>Docs Collecting</option><option>Submitted</option><option>Pending Review</option><option>Approved</option><option>Denied</option></select></td><td><input class="finp" placeholder="Notes…" style="padding:3px 7px;font-size:.72rem"/></td></tr>
+        </tbody></table></div>
+        <div class="alert bl" style="margin-top:10px">ℹ️ All payer submissions require review and approval by an authorized J5 Therapy staff member before transmitting.</div>
+        <div class="wact">
+          <button class="btn btn-g" onclick="credNext(2)">← Back</button>
+          <button class="btn btn-p" onclick="credNext(4)">Next: Timeline & Reminders →</button>
+        </div>
+      </div>
+
+      <div id="cred-s4" style="display:none">
+        <div class="wpt">Step 4 — Credentialing Timeline</div>
+        <div class="wps">Estimated milestones. Timelines vary by payer (typically 90–180 days).</div>
+        <div class="tl">
+          <div class="tl-item"><div class="tl-dot done">✅</div><div class="tl-body"><div class="tl-title">Provider Profile Created</div><div class="tl-sub">NPI, CAQH, license verified</div><div class="tl-date">Today</div></div></div>
+          <div class="tl-item"><div class="tl-dot active">📁</div><div class="tl-body"><div class="tl-title">Document Collection</div><div class="tl-sub">License, COI, CV, W-9, EFT form</div><div class="tl-date">Target: 1–2 weeks</div></div></div>
+          <div class="tl-item"><div class="tl-dot pending">📤</div><div class="tl-body"><div class="tl-title">Applications Submitted to Payers</div><div class="tl-sub">Via Availity and payer portals</div><div class="tl-date">~2 weeks from today</div></div></div>
+          <div class="tl-item"><div class="tl-dot pending">⏳</div><div class="tl-body"><div class="tl-title">Payer Review Period</div><div class="tl-sub">Most commercial: 60–120 days · AR Medicaid: up to 180 days</div><div class="tl-date">60–180 days from submission</div></div></div>
+          <div class="tl-item"><div class="tl-dot pending">🎉</div><div class="tl-body"><div class="tl-title">Effective Date Confirmed</div><div class="tl-sub">Provider active and billable</div><div class="tl-date">Upon payer approval letter</div></div></div>
+        </div>
+        <div style="margin-top:14px">
+          <div class="fl" style="margin-bottom:8px;font-size:.78rem;color:#4a5568">Set Re-Credentialing Reminder</div>
+          <div class="fr2">
+            <div class="fg"><label class="fl">Re-Cred Alert (days before due)</label><select class="fsel"><option>60 days before</option><option>90 days before</option><option>30 days before</option></select></div>
+            <div class="fg"><label class="fl">Assign to</label><select class="fsel"><option>Jane S.</option><option>Marcus R.</option><option>Priya N.</option></select></div>
+          </div>
+        </div>
+        <div class="wact">
+          <button class="btn btn-g" onclick="credNext(3)">← Back</button>
+          <button class="btn btn-p" onclick="credSave()">✅ Save Provider Profile</button>
+        </div>
+      </div>
+
+      <div id="cred-s4-done" style="display:none;text-align:center;padding:24px 0">
+        <div style="font-size:2rem;margin-bottom:8px">🏅</div>
+        <div style="font-weight:700;font-size:.95rem;color:#2b6cb0;margin-bottom:4px">Provider Profile Saved!</div>
+        <div style="font-size:.78rem;color:#718096;margin-bottom:18px">Added to Credentialing Tracker · Re-credentialing reminder set · Assigned to Jane S.</div>
+        <div style="display:flex;gap:8px;justify-content:center">
+          <button class="btn btn-o" onclick="hideCredWorkflow()">View Credentialing Tracker</button>
+          <button class="btn btn-p" onclick="resetCred()">+ Add Another Provider</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Credentialing Tracker Table -->
+  <div id="cred-tracker">
+    <div class="card"><div class="tw"><table><thead><tr><th>Provider</th><th>Credential</th><th>Payer</th><th>Submitted</th><th>Status</th><th>Effective</th><th>Re-Cred Due</th><th>Progress</th><th>Actions</th></tr></thead><tbody id="cred-tracker-tbody">
+      <tr><td colspan="9" style="text-align:center;padding:28px;color:#a0aec0;font-size:.82rem">No providers yet. Click <strong>+ Add Provider</strong> to begin credentialing.</td></tr>
+    </tbody></table></div></div>
+  </div>
+</div>
+
+<!-- ═══ CPT CODE DB ═══ -->
+<div class="view" id="view-cpt">
+  <div class="ph"><div><div class="pt">📖 CPT Code Reference Database</div><div class="ps">Speech Therapy · Occupational Therapy · ABA Therapy · Mental Health</div></div></div>
+
+  <div class="card">
+    <div class="ch">
+      <div class="fb">
+        <input class="fi" id="cpt-search" placeholder="🔍 Search CPT codes, descriptions…" oninput="filterCpt()"/>
+        <select class="fs" id="cpt-filter-type" onchange="filterCpt()">
+          <option value="">All Service Types</option>
+          <option value="speech">Speech Therapy</option>
+          <option value="ot">Occupational Therapy</option>
+          <option value="aba">ABA Therapy</option>
+          <option value="mh">Mental Health</option>
+        </select>
+        <select class="fs" id="cpt-filter-auth" onchange="filterCpt()">
+          <option value="">All Auth Statuses</option>
+          <option value="required">Auth Required</option>
+          <option value="conditional">Conditional / After X Visits</option>
+          <option value="none">No Auth Required</option>
+        </select>
+      </div>
+    </div>
+    <div class="tw"><table id="cpt-table"><thead><tr>
+      <th>CPT Code</th><th>Description</th><th>Type</th><th>Unit</th><th>Auth (BCBS AR)</th><th>Auth (Aetna)</th><th>Auth (Medicaid)</th>
+    </tr></thead><tbody id="cpt-tbody"></tbody></table></div>
+  </div>
+</div>
+
+<!-- ═══ PAYER DB ═══ -->
+<div class="view" id="view-payers">
+  <div class="ph"><div><div class="pt">🏦 Payer Reference Database</div><div class="ps">Contacts, portals, and general auth rules by payer</div></div></div>
+  <div class="card"><div class="tw"><table><thead><tr><th>Payer</th><th>Auth / Provider Line</th><th>Portal</th><th>Speech Auth</th><th>OT Auth</th><th>ABA Auth</th><th>MH Auth</th></tr></thead><tbody>
+    <tr><td><strong>BCBS Arkansas</strong></td><td>1-800-238-8379</td><td>availity.com</td><td class="cpt-auth-m">After 20 visits</td><td class="cpt-auth-m">After 20 visits</td><td class="cpt-auth-y">Always required</td><td class="cpt-auth-m">After session 8</td></tr>
+    <tr><td><strong>Aetna</strong></td><td>1-800-346-8990</td><td>availity.com</td><td class="cpt-auth-m">After 20 visits</td><td class="cpt-auth-m">After 20 visits</td><td class="cpt-auth-y">Always required</td><td class="cpt-auth-m">After session 8</td></tr>
+    <tr><td><strong>Cigna</strong></td><td>1-855-837-8495</td><td>cignaforhcp.com</td><td class="cpt-auth-m">After 20 visits</td><td class="cpt-auth-m">After 20 visits</td><td class="cpt-auth-y">Always required</td><td class="cpt-auth-m">After session 8</td></tr>
+    <tr><td><strong>United / Optum</strong></td><td>1-800-876-4797</td><td>optum.com</td><td class="cpt-auth-m">After 10 visits</td><td class="cpt-auth-m">After 10 visits</td><td class="cpt-auth-y">Always required</td><td class="cpt-auth-m">After session 6</td></tr>
+    <tr><td><strong>AR Medicaid</strong></td><td>1-800-482-5431</td><td>medicaid.mmis.com</td><td class="cpt-auth-y">Always required</td><td class="cpt-auth-y">Always required</td><td class="cpt-auth-y">Always required</td><td class="cpt-auth-y">Always required</td></tr>
+    <tr><td><strong>Ambetter AR</strong></td><td>1-877-687-1196</td><td>ambetterhealth.com</td><td class="cpt-auth-y">Always required</td><td class="cpt-auth-y">Always required</td><td class="cpt-auth-y">Always required</td><td class="cpt-auth-y">Always required</td></tr>
+    <tr><td><strong>QualChoice AR</strong></td><td>1-800-235-7111</td><td>qualchoice.com</td><td class="cpt-auth-n">Not required</td><td class="cpt-auth-n">Not required</td><td class="cpt-auth-m">After 20 hrs/wk</td><td class="cpt-auth-n">Not required</td></tr>
+  </tbody></table></div></div>
+</div>
+
+<!-- ═══ ERA / REMITTANCE ═══ -->
+<div class="view" id="view-era">
+  <div class="ph"><div><div class="pt">💳 ERA / Remittance</div><div class="ps">Electronic Remittance Advice — powered by Claim.MD live data</div></div>
+    <div class="pa"><button class="btn btn-p" onclick="fetchEraList()">🔄 Refresh from Claim.MD</button></div></div>
+
+  <div class="alert bl" id="era-api-note">ℹ️ ERA data is pulled live from Claim.MD. Click <strong>Refresh</strong> to load the latest remittances, or configure your backend URL in <strong>API Settings</strong>.</div>
+
+  <!-- ERA List -->
+  <div class="card">
+    <div class="ch"><span>💳</span><div class="ct">Remittance List</div>
+      <div class="fb" style="margin-left:auto">
+        <input class="fi" style="min-width:140px" placeholder="Filter by payer…" oninput="filterEraTable(this.value)"/>
+      </div>
+    </div>
+    <div style="padding:0">
+      <div class="table-wrap"><table id="era-table"><thead><tr>
+        <th>ERA ID</th><th>Payer</th><th>Check #</th><th>Type</th><th>Paid Date</th><th>Paid Amount</th><th>Provider NPI</th><th>Actions</th>
+      </tr></thead><tbody id="era-tbody">
+        <tr id="era-empty-row"><td colspan="8" style="text-align:center;padding:28px;color:#a0aec0;font-size:.82rem">Click <strong>Refresh from Claim.MD</strong> to load your remittances.</td></tr>
+      </tbody></table></div>
+    </div>
+  </div>
+
+  <!-- ERA Detail Panel -->
+  <div class="card" id="era-detail-panel" style="display:none">
+    <div class="ch"><span>📄</span><div class="ct" id="era-detail-title">ERA Detail</div>
+      <button class="btn btn-s btn-g" style="margin-left:auto" onclick="document.getElementById('era-detail-panel').style.display='none'">✕ Close</button>
+    </div>
+    <div class="cb" id="era-detail-body" style="font-size:.8rem;color:#4a5568">Loading…</div>
+  </div>
+</div>
+
+<!-- ═══ CLAIM STATUS ═══ -->
+<div class="view" id="view-claimstatus">
+  <div class="ph"><div><div class="pt">🔍 Claim Status</div><div class="ps">Look up real-time claim status via Claim.MD</div></div></div>
+
+  <div class="wp" style="max-width:560px">
+    <div class="wpt">Search Claim Status</div>
+    <div class="wps">Enter a Claim.MD Claim ID or poll for all recent status updates.</div>
+    <div class="fr2">
+      <div class="fg"><label class="fl">Claim.MD Claim ID (optional)</label><input class="finp" id="cs-claimid" placeholder="Leave blank to get all recent"/></div>
+      <div class="fg"><label class="fl">Response ID (pagination)</label><input class="finp" id="cs-responseid" value="0" type="number"/></div>
+    </div>
+    <div class="wact" style="margin-top:10px">
+      <button class="btn btn-p" onclick="fetchClaimStatus()">🔍 Check Status via Claim.MD</button>
+    </div>
+  </div>
+
+  <div class="card" id="cs-results" style="display:none">
+    <div class="ch"><span>🔍</span><div class="ct">Status Results</div><div id="cs-last-id" style="margin-left:auto;font-size:.72rem;color:#718096"></div></div>
+    <div style="padding:0"><div class="table-wrap"><table><thead><tr>
+      <th>Claim ID</th><th>Claim.MD ID</th><th>Status</th><th>Message</th><th>Response Time</th><th>Actions</th>
+    </tr></thead><tbody id="cs-tbody"></tbody></table></div></div>
+  </div>
+</div>
+
+<!-- ═══ SETTINGS / API CONFIG ═══ -->
+<div class="view" id="view-settings">
+  <div class="ph"><div><div class="pt">⚙️ API Settings</div><div class="ps">Configure Claim.MD backend connection and credentials</div></div></div>
+
+  <!-- Connection Status Card -->
+  <div class="card">
+    <div class="ch"><span>🔌</span><div class="ct">Claim.MD Connection Status</div>
+      <button class="btn btn-s btn-o" style="margin-left:auto" onclick="testConnection()">Test Connection</button>
+    </div>
+    <div class="cb">
+      <div id="conn-status-display" style="display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;align-items:center;gap:10px;font-size:.82rem">
+          <div class="api-dot checking" id="settings-dot" style="width:10px;height:10px"></div>
+          <span id="settings-status-text">Click "Test Connection" to verify your backend and Claim.MD are reachable.</span>
+        </div>
+        <div id="conn-detail" style="display:none;font-size:.78rem;background:#f7fafc;border-radius:8px;padding:12px;border:1px solid #e2e8f0"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Backend URL Config -->
+  <div class="card">
+    <div class="ch"><span>🖥️</span><div class="ct">Backend Server Configuration</div></div>
+    <div class="cb" style="display:flex;flex-direction:column;gap:14px">
+      <div class="alert bl">ℹ️ The backend server (j5_claimmd_backend.py) holds your Claim.MD AccountKey securely. The portal connects to the backend — the key is never exposed in the browser.</div>
+      <div class="fg">
+        <label class="fl">Backend API Base URL</label>
+        <input class="finp" id="backend-url" value="" placeholder="e.g. https://j5therapy-backend-abc123-uc.a.run.app"/>
+        <div style="font-size:.68rem;color:#a0aec0;margin-top:3px">Cloud Run URL (production) or http://localhost:8000 (local testing)</div>
+      </div>
+      <div class="wact" style="margin-top:0;padding-top:10px;border-top:1px solid #f0f4f8">
+        <button class="btn btn-g" onclick="resetBackendUrl()">Reset to Default</button>
+        <button class="btn btn-p" onclick="saveBackendUrl()">💾 Save URL</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Claim.MD Account Info -->
+  <div class="card">
+    <div class="ch"><span>🔑</span><div class="ct">Claim.MD Account</div></div>
+    <div class="cb" style="font-size:.82rem;color:#4a5568;display:flex;flex-direction:column;gap:10px">
+      <div class="alert or">⚠️ Your Claim.MD AccountKey must be set as an environment variable (<code>CLAIMMD_ACCOUNT_KEY</code>) in the backend server — NOT in this portal. Never paste your key here.</div>
+      <table style="width:100%;font-size:.8rem;border-collapse:collapse">
+        <tr><td style="padding:5px 0;color:#718096;width:40%">Claim.MD Base URL</td><td><strong>https://svc.claim.md</strong></td></tr>
+        <tr><td style="padding:5px 0;color:#718096">Rate Limit</td><td>100 requests / minute</td></tr>
+        <tr><td style="padding:5px 0;color:#718096">Account Key Location</td><td>Claim.MD Portal → Settings → Account Settings</td></tr>
+        <tr><td style="padding:5px 0;color:#718096">Support</td><td>(855) 757-6060 · claim.md</td></tr>
+      </table>
+      <div style="display:flex;gap:8px;margin-top:4px">
+        <a href="https://www.claim.md/login" target="_blank" class="btn btn-o btn-s">Open Claim.MD Portal ↗</a>
+        <a href="https://api.claim.md" target="_blank" class="btn btn-g btn-s">API Docs ↗</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Practice Information -->
+  <div class="card">
+    <div class="ch"><span>🏥</span><div class="ct">Practice Information</div>
+      <button class="btn btn-p btn-s" style="margin-left:auto" onclick="savePracticeInfo()">💾 Save</button>
+    </div>
+    <div class="cb" style="display:flex;flex-direction:column;gap:14px">
+      <div class="alert bl">ℹ️ This information is sent with every eligibility request and stored locally in your browser. It is never uploaded to any server other than Claim.MD via your secure backend.</div>
+      <div class="fr2">
+        <div class="fg">
+          <label class="fl">Practice Name</label>
+          <input class="finp" id="pi-practice-name" placeholder="e.g. J5 Therapy &amp; Associates"/>
+        </div>
+        <div class="fg">
+          <label class="fl">Tax ID / EIN <span style="color:#e53e3e">*</span></label>
+          <input class="finp" id="pi-tax-id" placeholder="9 digits, no dashes" maxlength="9" pattern="\d{9}"/>
+          <div style="font-size:.68rem;color:#a0aec0;margin-top:2px">Required for all Claim.MD eligibility and ERA calls</div>
+        </div>
+      </div>
+      <div class="fr2">
+        <div class="fg">
+          <label class="fl">Group / Organization NPI <span style="color:#e53e3e">*</span></label>
+          <input class="finp" id="pi-group-npi" placeholder="10-digit NPI" maxlength="10" pattern="\d{10}"/>
+          <div style="font-size:.68rem;color:#a0aec0;margin-top:2px">Type 2 NPI for your practice</div>
+        </div>
+        <div class="fg">
+          <label class="fl">Billing Provider NPI</label>
+          <input class="finp" id="pi-billing-npi" placeholder="10-digit NPI (optional)" maxlength="10" pattern="\d{10}"/>
+          <div style="font-size:.68rem;color:#a0aec0;margin-top:2px">Individual provider NPI; defaults to Group NPI if blank</div>
+        </div>
+      </div>
+      <div id="pi-save-status" style="display:none;font-size:.78rem;color:#38a169;font-weight:600">✅ Practice information saved.</div>
+    </div>
+  </div>
+
+  <!-- Enrolled Services -->
+  <div class="card">
+    <div class="ch"><span>📋</span><div class="ct">Payer Lookup — Claim.MD</div>
+      <button class="btn btn-s btn-o" style="margin-left:auto" onclick="fetchPayerSearch()">Search Payers</button>
+    </div>
+    <div class="cb" style="display:flex;flex-direction:column;gap:10px">
+      <div class="fr2">
+        <div class="fg"><label class="fl">Payer Name (wildcard)</label><input class="finp" id="payer-search-name" placeholder="e.g. Blue Cross"/></div>
+        <div class="fg"><label class="fl">Payer ID (exact)</label><input class="finp" id="payer-search-id" placeholder="e.g. 00060"/></div>
+      </div>
+      <div id="payer-search-results" style="display:none">
+        <div class="tw"><table><thead><tr><th>Payer ID</th><th>Payer Name</th><th>Claims</th><th>Eligibility</th><th>ERA</th></tr></thead>
+        <tbody id="payer-search-tbody"></tbody></table></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ UNIVERSAL MODAL ═══ -->
+<div id="modal-overlay" onclick="closeModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000"></div>
+<div id="modal-box" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.25);z-index:1001;width:540px;max-width:95vw;max-height:88vh;overflow-y:auto;padding:0">
+  <div id="modal-content"></div>
+</div>
+
+</main><!-- /main -->
+
+<!-- AI Panel -->
+<aside class="aip collapsed" id="aip">
+  <div class="aip-hdr"><span>🤖</span><div class="aip-title">AI Enrollment Assistant</div><button onclick="toggleAI()" style="background:none;border:none;cursor:pointer;color:#718096">✕</button></div>
+  <div class="ai-msgs" id="ai-msgs">
+    <div class="am bot">👋 Hi Jane! Ask me about auth requirements, CPT codes, payer contacts, or credentialing docs.</div>
+    <div class="ai-chips">
+      <button class="aic" onclick="aiQ('ABA auth requirements for Aetna?')">ABA auth — Aetna</button>
+      <button class="aic" onclick="aiQ('Speech therapy CPT codes')">Speech CPT codes</button>
+      <button class="aic" onclick="aiQ('OT auth for BCBS AR after 20 visits?')">OT auth — BCBS</button>
+      <button class="aic" onclick="aiQ('What docs for BCBA credentialing?')">BCBA cred docs</button>
+    </div>
+  </div>
+  <div class="ai-inp-area">
+    <input class="ai-inp" id="ai-inp" placeholder="Ask anything…" onkeydown="if(event.key==='Enter')aiSend()"/>
+    <button class="ai-send-btn" onclick="aiSend()"><svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></button>
+  </div>
+</aside>
+</div><!-- /shell -->
+
+<script>
+// ═══ CPT DATABASE ═══
+const CPT_DB = [
+  // Speech Therapy
+  {code:'92507',desc:'Treatment of speech, language, voice, communication (individual)',disc:'Individual speech-language therapy session',type:'speech',unit:'Per session',bcbs:'After 20 visits',aetna:'After 20 visits',medicaid:'Required'},
+  {code:'92508',desc:'Treatment of speech, language, voice, communication (group)',disc:'Group speech-language therapy (2+ patients)',type:'speech',unit:'Per session',bcbs:'After 20 visits',aetna:'After 20 visits',medicaid:'Required'},
+  {code:'92521',desc:'Evaluation of speech fluency',disc:'e.g., stuttering, cluttering assessment',type:'speech',unit:'Per eval',bcbs:'Not required',aetna:'Not required',medicaid:'Required'},
+  {code:'92522',desc:'Evaluation of speech sound production',disc:'Articulation and phonological evaluation',type:'speech',unit:'Per eval',bcbs:'Not required',aetna:'Not required',medicaid:'Required'},
+  {code:'92523',desc:'Evaluation of speech sound production with language comprehension',disc:'Combined articulation + language eval',type:'speech',unit:'Per eval',bcbs:'Not required',aetna:'Not required',medicaid:'Required'},
+  {code:'92524',desc:'Behavioral and qualitative analysis of voice and resonance',disc:'Voice disorder evaluation',type:'speech',unit:'Per eval',bcbs:'Not required',aetna:'Not required',medicaid:'Required'},
+  {code:'92526',desc:'Treatment of swallowing dysfunction and/or oral function for feeding',disc:'Dysphagia treatment',type:'speech',unit:'Per session',bcbs:'After 20 visits',aetna:'After 20 visits',medicaid:'Required'},
+  {code:'92610',desc:'Evaluation of oral and pharyngeal swallowing function',disc:'Clinical swallowing evaluation',type:'speech',unit:'Per eval',bcbs:'Not required',aetna:'Conditional',medicaid:'Required'},
+  {code:'92597',desc:'Evaluation for use/fitting of voice prosthetic device',disc:'Augmentative/alternative communication device eval',type:'speech',unit:'Per eval',bcbs:'Required',aetna:'Required',medicaid:'Required'},
+  {code:'92605',desc:'Evaluation for prescription of non-speech-generating AAC device',disc:'AAC evaluation',type:'speech',unit:'Per eval',bcbs:'Required',aetna:'Required',medicaid:'Required'},
+  // Occupational Therapy
+  {code:'97165',desc:'Occupational therapy evaluation, low complexity',disc:'≤20 min skilled OT assessment',type:'ot',unit:'Per eval',bcbs:'Not required',aetna:'Not required',medicaid:'Required'},
+  {code:'97166',desc:'Occupational therapy evaluation, moderate complexity',disc:'30 min skilled OT assessment',type:'ot',unit:'Per eval',bcbs:'Not required',aetna:'Not required',medicaid:'Required'},
+  {code:'97167',desc:'Occupational therapy evaluation, high complexity',disc:'45 min skilled OT assessment',type:'ot',unit:'Per eval',bcbs:'Not required',aetna:'Not required',medicaid:'Required'},
+  {code:'97168',desc:'Re-evaluation of occupational therapy',disc:'Reassessment of OT plan of care',type:'ot',unit:'Per eval',bcbs:'Not required',aetna:'Not required',medicaid:'Required'},
+  {code:'97110',desc:'Therapeutic procedure — strengthening / ROM (each 15 min)',disc:'Exercises to improve strength and range of motion',type:'ot',unit:'Per 15 min',bcbs:'After 20 visits',aetna:'After 20 visits',medicaid:'Required'},
+  {code:'97112',desc:'Neuromuscular reeducation of movement (each 15 min)',disc:'Balance, coordination, kinesthetic sense',type:'ot',unit:'Per 15 min',bcbs:'After 20 visits',aetna:'After 20 visits',medicaid:'Required'},
+  {code:'97530',desc:'Therapeutic activities — dynamic activities (each 15 min)',disc:'ADL tasks, fine motor, sensory integration',type:'ot',unit:'Per 15 min',bcbs:'After 20 visits',aetna:'After 20 visits',medicaid:'Required'},
+  {code:'97535',desc:'Self-care / home management training (each 15 min)',disc:'Dressing, grooming, cooking, safety skills',type:'ot',unit:'Per 15 min',bcbs:'After 20 visits',aetna:'After 20 visits',medicaid:'Required'},
+  {code:'97750',desc:'Physical performance test or measurement',disc:'Functional capacity evaluation',type:'ot',unit:'Per 15 min',bcbs:'Conditional',aetna:'Conditional',medicaid:'Required'},
+  {code:'97755',desc:'Assistive technology assessment (each 15 min)',disc:'Evaluation for adaptive devices/equipment',type:'ot',unit:'Per 15 min',bcbs:'Required',aetna:'Required',medicaid:'Required'},
+  {code:'97760',desc:'Orthotic management and training — initial encounter',disc:'Upper/lower extremity orthotic training',type:'ot',unit:'Per 15 min',bcbs:'Conditional',aetna:'Conditional',medicaid:'Required'},
+  // ABA Therapy
+  {code:'97151',desc:'Behavior identification assessment (by physician/psychologist/BCBA)',disc:'Initial functional behavior assessment',type:'aba',unit:'Per hr',bcbs:'Required',aetna:'Required',medicaid:'Required'},
+  {code:'97152',desc:'Behavior identification supporting assessment (by technician)',disc:'Additional data collection to support 97151',type:'aba',unit:'Per 15 min',bcbs:'Required',aetna:'Required',medicaid:'Required'},
+  {code:'97153',desc:'Adaptive behavior treatment by protocol, individual (technician)',disc:'1:1 ABA treatment — most common ABA code',type:'aba',unit:'Per 15 min',bcbs:'Required',aetna:'Required',medicaid:'Required'},
+  {code:'97154',desc:'Adaptive behavior treatment by protocol, group (technician)',disc:'Group ABA treatment (2+ clients)',type:'aba',unit:'Per 15 min',bcbs:'Required',aetna:'Required',medicaid:'Required'},
+  {code:'97155',desc:'Adaptive behavior treatment with protocol modification (BCBA)',disc:'BCBA direct treatment with skill programming',type:'aba',unit:'Per 15 min',bcbs:'Required',aetna:'Required',medicaid:'Required'},
+  {code:'97156',desc:'Family adaptive behavior treatment guidance (BCBA)',disc:'Parent/caregiver training by BCBA',type:'aba',unit:'Per 15 min',bcbs:'Required',aetna:'Required',medicaid:'Required'},
+  {code:'97157',desc:'Multiple-family group adaptive behavior treatment guidance',disc:'Group caregiver training by BCBA',type:'aba',unit:'Per 15 min',bcbs:'Required',aetna:'Required',medicaid:'Required'},
+  {code:'97158',desc:'Group adaptive behavior treatment with protocol modification',disc:'BCBA group treatment with modification',type:'aba',unit:'Per 15 min',bcbs:'Required',aetna:'Required',medicaid:'Required'},
+  // Mental Health
+  {code:'90791',desc:'Psychiatric diagnostic evaluation',disc:'Initial mental health intake — no medical services',type:'mh',unit:'Per eval',bcbs:'Not required',aetna:'Not required',medicaid:'Required'},
+  {code:'90837',desc:'Psychotherapy, 53+ minutes (individual)',disc:'Standard individual therapy session',type:'mh',unit:'Per session',bcbs:'After session 8',aetna:'After session 8',medicaid:'Required'},
+  {code:'90834',desc:'Psychotherapy, 45 minutes (individual)',disc:'Shorter individual therapy session',type:'mh',unit:'Per session',bcbs:'After session 8',aetna:'After session 8',medicaid:'Required'},
+  {code:'90847',desc:'Family psychotherapy with patient present',disc:'Family therapy session',type:'mh',unit:'Per session',bcbs:'After session 8',aetna:'Conditional',medicaid:'Required'},
+  {code:'90853',desc:'Group psychotherapy',disc:'Group therapy session (not family)',type:'mh',unit:'Per session',bcbs:'Conditional',aetna:'Conditional',medicaid:'Required'},
+  {code:'96130',desc:'Psychological testing evaluation by psychologist (first hr)',disc:'First hour of psych testing administration',type:'mh',unit:'Per hr',bcbs:'Required',aetna:'Required',medicaid:'Required'},
+  {code:'96131',desc:'Psychological testing evaluation — each additional hr',disc:'Additional hours of psych testing',type:'mh',unit:'Per hr',bcbs:'Required',aetna:'Required',medicaid:'Required'},
+];
+
+// Render CPT table
+function renderCpt(data) {
+  const tbody = document.getElementById('cpt-tbody');
+  tbody.innerHTML = data.map(r => {
+    const authClass = v => v==='Required'||v==='Always required'?'cpt-auth-y':v==='Not required'?'cpt-auth-n':'cpt-auth-m';
+    const typeLabel = {speech:'Speech',ot:'OT',aba:'ABA',mh:'Mental Health'}[r.type]||r.type;
+    const typeColor = {speech:'#2b6cb0',ot:'#276749',aba:'#744210',mh:'#553c9a'}[r.type]||'#4a5568';
+    return `<tr>
+      <td><strong style="color:#2b6cb0">${r.code}</strong></td>
+      <td><div style="font-weight:600;font-size:.78rem">${r.desc}</div><div class="cpt-disc">${r.disc}</div></td>
+      <td><span style="background:#f0f4f8;color:${typeColor};font-size:.68rem;padding:2px 7px;border-radius:7px;font-weight:600">${typeLabel}</span></td>
+      <td style="font-size:.73rem;color:#718096">${r.unit}</td>
+      <td class="${authClass(r.bcbs)}">${r.bcbs}</td>
+      <td class="${authClass(r.aetna)}">${r.aetna}</td>
+      <td class="${authClass(r.medicaid)}">${r.medicaid}</td>
+    </tr>`;
+  }).join('');
+}
+renderCpt(CPT_DB);
+
+function filterCpt() {
+  const q = document.getElementById('cpt-search').value.toLowerCase();
+  const type = document.getElementById('cpt-filter-type').value;
+  const auth = document.getElementById('cpt-filter-auth').value;
+  let filtered = CPT_DB.filter(r => {
+    const matchQ = !q || r.code.toLowerCase().includes(q) || r.desc.toLowerCase().includes(q) || r.disc.toLowerCase().includes(q);
+    const matchType = !type || r.type === type;
+    const matchAuth = !auth || (
+      auth==='required' ? (r.bcbs==='Required'||r.aetna==='Required') :
+      auth==='conditional' ? (r.bcbs.includes('After')||r.aetna.includes('After')||r.bcbs==='Conditional') :
+      auth==='none' ? (r.bcbs==='Not required'&&r.aetna==='Not required') : true
+    );
+    return matchQ && matchType && matchAuth;
+  });
+  renderCpt(filtered);
+}
+
+// CPT options for eligibility/auth dropdowns
+const CPT_BY_TYPE = {
+  speech:['92507 — Individual speech therapy','92508 — Group speech therapy','92521 — Eval: speech fluency','92522 — Eval: speech sound production','92523 — Eval: speech + language','92524 — Voice/resonance analysis','92526 — Swallowing treatment','92610 — Swallowing eval'],
+  ot:['97165 — OT eval, low complexity','97166 — OT eval, moderate complexity','97167 — OT eval, high complexity','97168 — OT re-evaluation','97110 — Therapeutic exercise (15 min)','97112 — Neuromuscular reeducation (15 min)','97530 — Therapeutic activities (15 min)','97535 — Self-care training (15 min)','97755 — Assistive tech assessment'],
+  aba:['97151 — Behavior identification assessment','97152 — Supporting assessment (tech)','97153 — Treatment by protocol, individual (tech)','97154 — Treatment by protocol, group (tech)','97155 — Treatment w/ protocol modification (BCBA)','97156 — Family guidance (BCBA)','97157 — Multi-family group guidance','97158 — Group treatment w/ modification'],
+  mh:['90791 — Psychiatric intake eval','90837 — Individual therapy 53+ min','90834 — Individual therapy 45 min','90847 — Family therapy w/ patient','90853 — Group therapy','96130 — Psych testing (first hr)','96131 — Psych testing (add\'l hr)'],
+  psych:['96130 — Psychological testing (first hr)','96131 — Psychological testing (add\'l hr)','90791 — Psychiatric eval'],
+};
+
+function loadCptOptions() {
+  const type = document.getElementById('e-svctype').value;
+  const sel = document.getElementById('e-cpt');
+  sel.innerHTML = (CPT_BY_TYPE[type]||[]).map(c=>`<option>${c}</option>`).join('');
+}
+function loadAuthCptOptions() {
+  const type = document.getElementById('a-svctype').value;
+  const sel = document.getElementById('a-cpt');
+  sel.innerHTML = '<option value="">— Select CPT —</option>'+(CPT_BY_TYPE[type]||[]).map(c=>`<option>${c}</option>`).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CLAIM.MD API INTEGRATION LAYER
+// All calls go through the backend proxy (j5_claimmd_backend.py)
+// so the AccountKey is never exposed in the browser.
+// ═══════════════════════════════════════════════════════════════
+
+// Production: Cloud Run backend URL (auto-injected by deploy script)
+// Development: change to http://localhost:8000 for local testing
+const DEFAULT_BACKEND = 'https://j5therapy-backend-PLACEHOLDER-uc.a.run.app';
+
+function getBackendUrl() {
+  return localStorage.getItem('j5_backend_url') || DEFAULT_BACKEND;
+}
+
+function saveBackendUrl() {
+  const url = document.getElementById('backend-url').value.trim().replace(/\/$/, '');
+  localStorage.setItem('j5_backend_url', url);
+  showToast('Backend URL saved: ' + url);
+  testConnection();
+}
+
+function resetBackendUrl() {
+  document.getElementById('backend-url').value = DEFAULT_BACKEND;
+  localStorage.removeItem('j5_backend_url');
+  showToast('Backend URL reset to default.');
+}
+
+function savePracticeInfo() {
+  const name   = document.getElementById('pi-practice-name').value.trim();
+  const taxId  = document.getElementById('pi-tax-id').value.trim().replace(/\D/g,'');
+  const grpNpi = document.getElementById('pi-group-npi').value.trim().replace(/\D/g,'');
+  const bilNpi = document.getElementById('pi-billing-npi').value.trim().replace(/\D/g,'');
+
+  if (!taxId || taxId.length !== 9) {
+    showToast('Tax ID must be exactly 9 digits.', 'error'); return;
+  }
+  if (!grpNpi || grpNpi.length !== 10) {
+    showToast('Group NPI must be exactly 10 digits.', 'error'); return;
+  }
+  if (bilNpi && bilNpi.length !== 10) {
+    showToast('Billing Provider NPI must be exactly 10 digits if provided.', 'error'); return;
+  }
+
+  const info = { practiceName: name, taxId, groupNpi: grpNpi, billingNpi: bilNpi };
+  localStorage.setItem('j5_practice_info', JSON.stringify(info));
+
+  const st = document.getElementById('pi-save-status');
+  st.style.display = 'block';
+  setTimeout(() => { st.style.display = 'none'; }, 4000);
+  showToast('Practice information saved.', 'success');
+}
+
+function loadPracticeInfo() {
+  const info = getPracticeInfo();
+  const f = id => { const el = document.getElementById(id); if(el) return el; };
+  if (f('pi-practice-name')) f('pi-practice-name').value = info.practiceName || '';
+  if (f('pi-tax-id'))        f('pi-tax-id').value        = info.taxId        || '';
+  if (f('pi-group-npi'))     f('pi-group-npi').value     = info.groupNpi     || '';
+  if (f('pi-billing-npi'))   f('pi-billing-npi').value   = info.billingNpi   || '';
+}
+
+// Toast notification
+function showToast(msg, type='info') {
+  const t = document.createElement('div');
+  t.style.cssText=`position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:${type==='error'?'#c53030':type==='success'?'#276749':'#2b6cb0'};color:#fff;padding:10px 20px;border-radius:8px;font-size:.8rem;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,.2);max-width:400px;text-align:center`;
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3500);
+}
+
+// Generic backend fetch helper
+async function apiCall(path, formData) {
+  const base = getBackendUrl();
+  try {
+    const resp = await fetch(base + path, {
+      method: 'POST',
+      body: formData,
+    });
+    if (!resp.ok) {
+      const err = await resp.json().catch(()=>({detail:'Unknown error'}));
+      throw new Error(err.detail || `HTTP ${resp.status}`);
+    }
+    return await resp.json();
+  } catch(e) {
+    if (e.message.includes('Failed to fetch') || e.message.includes('NetworkError')) {
+      throw new Error(`Cannot reach backend at ${base}. Is j5_claimmd_backend.py running?`);
+    }
+    throw e;
+  }
+}
+
+// ── Health / Connection Test ──────────────────────────────────────────────────
+
+async function testConnection() {
+  setApiStatus('checking', 'Checking…');
+  const dot = document.getElementById('settings-dot');
+  const text = document.getElementById('settings-status-text');
+  const detail = document.getElementById('conn-detail');
+  if(dot) dot.className='api-dot checking';
+  if(text) text.textContent = 'Testing connection…';
+
+  try {
+    const base = getBackendUrl();
+    const resp = await fetch(base + '/api/health');
+    const data = await resp.json();
+
+    if (data.key_configured && data.claimmd_connected) {
+      setApiStatus('connected', 'Claim.MD Connected');
+      if(dot) dot.className='api-dot connected';
+      if(text) text.textContent = '✅ Backend reachable · Claim.MD key configured · Claim.MD reachable';
+    } else if (data.key_configured && !data.claimmd_connected) {
+      setApiStatus('error', 'Claim.MD Unreachable');
+      if(dot) dot.className='api-dot error';
+      if(text) text.textContent = '⚠️ Backend OK · AccountKey set · But Claim.MD is not reachable. Check network.';
+    } else {
+      setApiStatus('error', 'Key Not Set');
+      if(dot) dot.className='api-dot error';
+      if(text) text.textContent = '⚠️ Backend reachable but CLAIMMD_ACCOUNT_KEY is not configured. Set it in Secret Manager.';
+    }
+
+    if(detail) {
+      detail.style.display='block';
+      detail.innerHTML = `<strong>Backend:</strong> ${base}<br>
+        <strong>Key Configured:</strong> ${data.key_configured ? '✅ Yes' : '❌ No'}<br>
+        <strong>Claim.MD Reachable:</strong> ${data.claimmd_connected ? '✅ Yes' : '❌ No'}<br>
+        <strong>Claim.MD Base URL:</strong> https://claimmd.com/api/`;
+    }
+  } catch(e) {
+    setApiStatus('error', 'Backend Offline');
+    if(dot) dot.className='api-dot error';
+    if(text) text.textContent = '❌ Cannot reach backend. Run: uvicorn j5_claimmd_backend:app --reload --port 8000';
+    if(detail) { detail.style.display='block'; detail.innerHTML=`<strong>Error:</strong> ${e.message}`; }
+  }
+}
+
+function setApiStatus(state, label) {
+  const dot = document.getElementById('api-dot');
+  const lbl = document.getElementById('api-status-label');
+  if(dot) { dot.className='api-dot'; if(state==='connected') dot.classList.add('connected'); else if(state==='error') dot.classList.add('error'); else dot.classList.add('checking'); }
+  if(lbl) lbl.textContent = label;
+}
+
+// ── Eligibility (live via Claim.MD) ─────────────────────────────────────────
+
+async function runEligCheck() {
+  const carrier   = document.getElementById('e-carrier').value   || '';
+  const memberid  = document.getElementById('e-memberid').value  || '';
+  const dob       = document.getElementById('e-dob').value       || '';
+  const npi       = document.getElementById('e-npi').value       || '';
+  const startdate = document.getElementById('e-startdate').value || '';
+  const svctype   = document.getElementById('e-svctype').value   || '';
+
+  document.getElementById('elig-result-sub').textContent = 'Sending request to Claim.MD…';
+  document.getElementById('elig-results-area').innerHTML = `<div style="text-align:center;padding:30px;color:#718096"><div style="font-size:1.5rem;margin-bottom:8px">⏳</div>Checking eligibility with Claim.MD…</div>`;
+
+  try {
+    // Map carrier name to Claim.MD payer ID
+    const payerid = PAYER_ID_MAP[carrier] || '00001';
+
+    // Format DOB from yyyy-mm-dd to yyyymmdd
+    const dobFmt = dob ? dob.replace(/-/g, '') : '';
+    const dosFmt = startdate ? startdate.replace(/-/g, '') : new Date().toISOString().slice(0,10).replace(/-/g,'');
+
+    const fname = document.getElementById('e-fname').value || 'PATIENT';
+    const lname = document.getElementById('e-lname').value || 'VERIFY';
+
+    // Map relationship dropdown to Claim.MD pat_rel code
+    const relVal = (document.getElementById('e-rel').value || 'Self').toLowerCase();
+    const patRel = (relVal.includes('child') || relVal.includes('dependent') || relVal.includes('spouse')) ? 'G8' : '18';
+
+    // Correct Claim.MD benefit type codes per /services/eligdata/ spec
+    const svcCodeMap = { speech: 'AF', ot: 'AD', aba: 'E0', mh: 'MH', psych: 'A4' };
+    const svcCode = svcCodeMap[svctype] || '30';
+
+    const fd = new FormData();
+    fd.append('ins_name_l', lname);
+    fd.append('ins_name_f', fname);
+    fd.append('ins_number', memberid);
+    fd.append('ins_dob', dobFmt);
+    fd.append('payerid', payerid);
+    fd.append('pat_rel', patRel);
+    fd.append('fdos', dosFmt);
+    const practiceNpi = getPracticeProvNpi();
+    const practiceTax = getPracticeTaxId();
+    if (!practiceNpi || !practiceTax) {
+      renderEligError('Practice NPI and Tax ID are required. Please enter them in <strong>API Settings → Practice Information</strong>.');
+      document.getElementById('elig-result-sub').textContent = '⚠️ Practice information not configured';
+      document.getElementById('elig-run-btn').disabled = false;
+      document.getElementById('elig-run-btn').textContent = '▶ Run Eligibility Check';
+      return;
+    }
+    fd.append('prov_npi', npi || practiceNpi);
+    fd.append('prov_taxid', practiceTax);
+    fd.append('service_code', svcCode);
+
+    const result = await apiCall('/api/eligibility', fd);
+    renderLiveEligResult(result, carrier, svctype);
+    document.getElementById('elig-result-sub').textContent =
+      `Live response from Claim.MD · ${new Date().toLocaleString()} · Payer ID: ${payerid}`;
+
+  } catch(e) {
+    document.getElementById('elig-result-sub').textContent =
+      `⚠️ Eligibility check failed — ${e.message}`;
+    renderEligError(e.message);
+  }
+}
+
+function renderLiveEligResult(result, carrier, svctype) {
+  const typeLabel = {speech:'Speech Therapy',ot:'Occupational Therapy',aba:'ABA Therapy',mh:'Mental Health',psych:'Psych Testing'}[svctype]||'Behavioral Health';
+  const authNote = svctype==='aba'
+    ? '⚠️ Prior authorization required for all ABA services before treatment begins.'
+    : svctype==='speech'||svctype==='ot' ? '⚠️ Prior authorization typically required after 20 visits.'
+    : '⚠️ Prior authorization may be required after session 8.';
+  const authClass = svctype === 'aba' ? 'rc-err' : 'rc-warn';
+
+  // Parse Claim.MD /services/eligdata/ JSON response
+  // Structure: result.result.elig (attributes prefixed with @, benefits array)
+  let elig = null;
+  try {
+    const r = result.result || result.data || result;
+    elig = r.elig || r.eligibility || r;
+  } catch(e) { elig = result; }
+
+  const get = (obj, key) => obj && (obj['@'+key] || obj[key] || '');
+
+  if (!elig || (typeof elig === 'object' && Object.keys(elig).length === 0)) {
+    renderEligError('Claim.MD returned an empty response. Verify the Provider NPI, Tax ID, and Payer ID are correct in Practice Info settings.');
+    return;
+  }
+
+  // Member info
+  const memberName = `${get(elig,'ins_name_f')} ${get(elig,'ins_name_l')}`.trim() || 'On file';
+  const planName   = get(elig,'plan_number') || get(elig,'group_number') || carrier;
+  const planDates  = get(elig,'plan_begin_date') || '';
+
+  // Parse benefits array
+  const benefits = elig.benefit ? (Array.isArray(elig.benefit) ? elig.benefit : [elig.benefit]) : [];
+
+  // Helper: find benefits by coverage code
+  const findBenefit = (covCode) => benefits.filter(b => get(b,'benefit_coverage_code') === covCode);
+  const findBenefitByType = (code, covCode) => benefits.filter(b => get(b,'benefit_code')===code && get(b,'benefit_coverage_code')===covCode);
+
+  // Active coverage check
+  const activeBenefit = benefits.find(b => get(b,'benefit_coverage_code') === '1');
+  const isActive = !!activeBenefit;
+  const planFullName = activeBenefit ? (get(activeBenefit,'insurance_plan') || carrier) : carrier;
+  const inNetwork = activeBenefit ? (get(activeBenefit,'inplan_network') || 'W') : 'W';
+  const networkLabel = inNetwork === 'Y' ? '✅ In-Network' : inNetwork === 'N' ? '⚠️ Out-of-Network' : '✅ In-Network (verify)';
+
+  // Deductibles
+  const dedBenefits = findBenefit('C');
+  const dedInd = dedBenefits.find(b => get(b,'benefit_level_code')==='IND' && get(b,'inplan_network')!=='N');
+  const dedFam = dedBenefits.find(b => get(b,'benefit_level_code')==='FAM' && get(b,'inplan_network')!=='N');
+  const dedMetBenefits = benefits.filter(b => get(b,'benefit_coverage_code')==='C' && get(b,'benefit_period_code')==='24');
+  const dedMet = dedMetBenefits.find(b => get(b,'benefit_level_code')==='IND');
+
+  // OOP
+  const oopBenefits = findBenefit('G');
+  const oopInd = oopBenefits.find(b => get(b,'benefit_level_code')==='IND' && get(b,'inplan_network')!=='N');
+
+  // Copay / Coinsurance for service type
+  const svcCodeMap = { speech: 'AF', ot: 'AD', aba: 'E0', mh: 'MH', psych: 'A4' };
+  const svcCode = svcCodeMap[svctype] || '30';
+  const copay = benefits.find(b => get(b,'benefit_code')===svcCode && get(b,'benefit_coverage_code')==='B')
+             || benefits.find(b => get(b,'benefit_code')==='30' && get(b,'benefit_coverage_code')==='B');
+  const coins = benefits.find(b => get(b,'benefit_code')===svcCode && get(b,'benefit_coverage_code')==='A')
+             || benefits.find(b => get(b,'benefit_code')==='30' && get(b,'benefit_coverage_code')==='A');
+  const visitLimit = benefits.find(b => get(b,'benefit_code')===svcCode && get(b,'benefit_coverage_code')==='F');
+
+  const fmt$ = v => v ? `$${parseFloat(v).toLocaleString('en-US',{minimumFractionDigits:2})}` : '—';
+  const fmtPct = v => v ? `${v}%` : '—';
+
+  document.getElementById('elig-results-area').innerHTML = `
+    <div class="rc">
+      <div class="rc-title">${isActive ? '✅' : '❌'} ${planFullName} — ${isActive ? 'Active Coverage' : 'Coverage Not Confirmed'}</div>
+      <table>
+        <tr><td>Member Name</td><td>${memberName}</td></tr>
+        <tr><td>Plan</td><td>${planFullName}</td></tr>
+        <tr><td>Service Type Verified</td><td>${typeLabel}</td></tr>
+        <tr><td>Network Status</td><td>${networkLabel}</td></tr>
+        ${planDates ? `<tr><td>Coverage Dates</td><td>${planDates}</td></tr>` : ''}
+      </table>
+      ${isActive ? '<div class="rc-ok">✅ Member is active and eligible as of today\'s date.</div>' : '<div class="rc-err">❌ Active coverage not confirmed — contact payer.</div>'}
+    </div>
+    <div class="rc">
+      <div class="rc-title">💰 Benefits Summary — ${typeLabel}</div>
+      <table>
+        <tr><td>Individual Deductible</td><td>${fmt$(get(dedInd,'benefit_amount'))}</td></tr>
+        <tr><td>Deductible Met (YTD)</td><td>${fmt$(get(dedMet,'benefit_amount'))}</td></tr>
+        <tr><td>Family Deductible</td><td>${fmt$(get(dedFam,'benefit_amount'))}</td></tr>
+        <tr><td>Out-of-Pocket Max (Ind.)</td><td>${fmt$(get(oopInd,'benefit_amount'))}</td></tr>
+        <tr><td>Copay (per visit)</td><td>${fmt$(get(copay,'benefit_amount'))}</td></tr>
+        <tr><td>Coinsurance</td><td>${fmtPct(get(coins,'benefit_percent'))}</td></tr>
+        ${visitLimit ? `<tr><td>Annual Visit Limit</td><td>${get(visitLimit,'benefit_qnty') || '—'} visits</td></tr>` : '<tr><td>Annual Visit Limit</td><td>Not specified by payer</td></tr>'}
+      </table>
+    </div>
+    <div class="rc">
+      <div class="rc-title">🔐 Authorization & Limitations</div>
+      <table>
+        <tr><td>Prior Auth Required</td><td>${svctype==='aba'?'✅ Yes — before treatment':'⚠️ Verify with payer'}</td></tr>
+        <tr><td>Medical Necessity Required</td><td>Yes — all ${typeLabel} services</td></tr>
+        <tr><td>Referral Required</td><td>Verify with payer</td></tr>
+      </table>
+      <div class="${authClass}">${authNote}</div>
+    </div>
+    <details style="margin-top:8px">
+      <summary style="font-size:.75rem;color:#2b6cb0;cursor:pointer">View full raw Claim.MD response</summary>
+      <pre style="font-size:.68rem;background:#f7fafc;padding:10px;border-radius:6px;overflow:auto;margin-top:8px;max-height:200px">${JSON.stringify(result, null, 2)}</pre>
+    </details>`;
+}
+
+function renderEligError(msg) {
+  document.getElementById('elig-results-area').innerHTML = `
+    <div class="alert re" style="margin-bottom:10px">
+      ❌ <strong>Eligibility check failed</strong> — ${msg || 'Unknown error'}
+    </div>
+    <div class="rc">
+      <div class="rc-title">Troubleshooting Steps</div>
+      <table>
+        <tr><td style="vertical-align:top;padding:6px 0;width:30%">1. Practice Info</td><td style="padding:6px 0">Verify NPI and Tax ID are entered in <strong>API Settings → Practice Information</strong></td></tr>
+        <tr><td style="vertical-align:top;padding:6px 0">2. Payer ID</td><td style="padding:6px 0">Use <strong>Payer Lookup</strong> in API Settings to confirm the correct Claim.MD Payer ID</td></tr>
+        <tr><td style="vertical-align:top;padding:6px 0">3. Member data</td><td style="padding:6px 0">Verify Member ID and Date of Birth match the insurance card exactly</td></tr>
+        <tr><td style="vertical-align:top;padding:6px 0">4. Backend URL</td><td style="padding:6px 0">Confirm the backend URL is saved in <strong>API Settings → Backend Server Configuration</strong></td></tr>
+      </table>
+    </div>`;
+  showToast('Eligibility check failed — see results panel for details.', 'error');
+}
+
+// ── ERA Functions ─────────────────────────────────────────────────────────────
+
+async function fetchEraList() {
+  try {
+    const fd = new FormData();
+    fd.append('response_id', '0');
+    fd.append('prov_tax_id', getPracticeTaxId());
+    const result = await apiCall('/api/era/list', fd);
+    renderEraTable(result.data);
+    showToast('ERA list refreshed from Claim.MD', 'success');
+  } catch(e) {
+    showToast('Could not reach backend: ' + e.message, 'error');
+  }
+}
+
+function renderEraTable(data) {
+  const eras = data?.era ? (Array.isArray(data.era) ? data.era : [data.era]) : [];
+  if (!eras.length) { showToast('No ERA records returned.'); return; }
+  const tbody = document.getElementById('era-tbody');
+  tbody.innerHTML = eras.map(e => `
+    <tr>
+      <td>${e.eraid||'—'}</td>
+      <td>${e.payer_name||'—'}</td>
+      <td>${e.check_number||'—'}</td>
+      <td>${(e.check_type||'').toUpperCase()||'—'}</td>
+      <td>${e.paid_date||'—'}</td>
+      <td><strong>$${parseFloat(e.paid_amount||0).toFixed(2)}</strong></td>
+      <td>${e.prov_npi||'—'}</td>
+      <td style="display:flex;gap:4px">
+        <button class="btn btn-s btn-o" onclick="viewEraDetail('${e.eraid}')">View</button>
+        <button class="btn btn-s btn-g" onclick="downloadEraPdf('${e.eraid}')">PDF</button>
+      </td>
+    </tr>`).join('');
+}
+
+function filterEraTable(q) {
+  document.querySelectorAll('#era-tbody tr').forEach(row => {
+    row.style.display = row.textContent.toLowerCase().includes(q.toLowerCase()) ? '' : 'none';
+  });
+}
+
+async function viewEraDetail(eraid) {
+  const panel = document.getElementById('era-detail-panel');
+  const body  = document.getElementById('era-detail-body');
+  const title = document.getElementById('era-detail-title');
+  panel.style.display = 'block';
+  title.textContent = `ERA Detail — ID ${eraid}`;
+  body.innerHTML = '⏳ Loading from Claim.MD…';
+  panel.scrollIntoView({behavior:'smooth'});
+  try {
+    const fd = new FormData(); fd.append('eraid', eraid);
+    const result = await apiCall('/api/era/details', fd);
+    const d = result.data || {};
+    body.innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:12px">
+        <div><strong>ERA ID:</strong> ${eraid}</div>
+        <div><strong>Check #:</strong> ${d.check_number||'—'}</div>
+        <div><strong>Paid Amount:</strong> $${parseFloat(d.paid_amount||0).toFixed(2)}</div>
+        <div><strong>Source:</strong> Claim.MD live</div>
+      </div>
+      <details open><summary style="font-size:.75rem;color:#2b6cb0;cursor:pointer;margin-bottom:8px">Full ERA Data (835)</summary>
+      <pre style="font-size:.68rem;background:#f7fafc;padding:10px;border-radius:6px;overflow:auto;max-height:300px">${JSON.stringify(d, null, 2)}</pre></details>`;
+  } catch(e) {
+    body.innerHTML = `<div class="alert re">❌ Could not load ERA detail: ${e.message}</div>`;
+  }
+}
+
+async function downloadEraPdf(eraid) {
+  showToast('Requesting PDF from Claim.MD…');
+  try {
+    const fd = new FormData(); fd.append('eraid', eraid);
+    const result = await apiCall('/api/era/pdf', fd);
+    const pdfB64 = result.data?._text || result.data?.data?._text;
+    if (pdfB64) {
+      const link = document.createElement('a');
+      link.href = 'data:application/pdf;base64,' + pdfB64;
+      link.download = `ERA_${eraid}.pdf`;
+      link.click();
+      showToast('PDF downloaded!', 'success');
+    } else {
+      showToast('PDF data not found in response.', 'error');
+    }
+  } catch(e) {
+    showToast('PDF download failed: ' + e.message, 'error');
+  }
+}
+
+// ── Claim Status ──────────────────────────────────────────────────────────────
+
+/* Called from Kanban "Check Status →" button.
+   Kanban case IDs are internal (e.g. 1088) — NOT the same as Claim.MD claim IDs.
+   We navigate to the Claim Status section and let the user enter / confirm the
+   Claim.MD ID before running the lookup. */
+function goCheckStatus(caseId, payer) {
+  // Navigate to Claim Status section
+  const navEl = document.querySelector('.nav[onclick*="claimstatus"]');
+  go('claimstatus', navEl);
+  // Clear the claim ID field and pre-populate placeholder so user knows what to do
+  const claimIdEl = document.getElementById('cs-claimid');
+  const responseIdEl = document.getElementById('cs-responseid');
+  if (claimIdEl) {
+    claimIdEl.value = '';
+    claimIdEl.placeholder = 'Enter Claim.MD ID for Case #' + caseId + ' (' + payer + ')';
+    claimIdEl.focus();
+  }
+  if (responseIdEl) responseIdEl.value = '0';
+  showToast('Case #' + caseId + ' (' + payer + ') — enter the Claim.MD Claim ID then click Check Status', 'info');
+}
+
+async function fetchClaimStatus() {
+  const responseid = document.getElementById('cs-responseid').value || '0';
+  const claimid    = document.getElementById('cs-claimid').value.trim();
+  try {
+    const fd = new FormData();
+    fd.append('response_id', responseid);
+    if (claimid) fd.append('claim_id', claimid);
+    const result = await apiCall('/api/claims/status', fd);
+    renderClaimStatusTable(result.data);
+    showToast('Claim status retrieved from Claim.MD', 'success');
+  } catch(e) {
+    showToast('Error: ' + e.message, 'error');
+  }
+}
+
+function renderClaimStatusTable(data) {
+  const panel = document.getElementById('cs-results');
+  const tbody = document.getElementById('cs-tbody');
+  const lastId = document.getElementById('cs-last-id');
+  panel.style.display = 'block';
+  if (data.last_responseid) { lastId.textContent = 'Last Response ID: ' + data.last_responseid; document.getElementById('cs-responseid').value = data.last_responseid; }
+  const claims = data.claim ? (Array.isArray(data.claim) ? data.claim : [data.claim]) : [];
+  if (!claims.length) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#718096;padding:16px">No status updates found.</td></tr>'; return; }
+  const statusBadge = s => s==='A'?'<span class="b bv">Accepted</span>':s==='R'?'<span class="b br">Rejected</span>':s==='P'?'<span class="b bca">Paid</span>':'<span class="b bp">'+s+'</span>';
+  tbody.innerHTML = claims.map(c => {
+    const msgs = c.messages ? (Array.isArray(c.messages) ? c.messages : [c.messages]) : [];
+    return `<tr>
+      <td>${c.claimid||'—'}</td>
+      <td>${c.claimmd_id||'—'}</td>
+      <td>${statusBadge(c.status||'')}</td>
+      <td style="font-size:.73rem">${msgs.map(m=>m.message||'').join('; ')||'—'}</td>
+      <td style="font-size:.73rem">${c.response_time||'—'}</td>
+      <td style="display:flex;gap:4px"><button class="btn btn-s btn-g" onclick="addNote('${c.claimmd_id}')">Add Note</button></td>
+    </tr>`;
+  }).join('');
+}
+
+async function addNote(claimmdId) {
+  const note = prompt('Enter note for Claim.MD ID ' + claimmdId + ':');
+  if (!note) return;
+  try {
+    const fd = new FormData();
+    fd.append('claimmd_id', claimmdId);
+    fd.append('note_text', note);
+    await apiCall('/api/claims/notes', fd);
+    showToast('Note added to Claim.MD!', 'success');
+  } catch(e) {
+    showToast('Could not add note: ' + e.message, 'error');
+  }
+}
+
+// ── Payer Search ──────────────────────────────────────────────────────────────
+
+async function fetchPayerSearch() {
+  const name = document.getElementById('payer-search-name').value.trim();
+  const id   = document.getElementById('payer-search-id').value.trim();
+  try {
+    const fd = new FormData();
+    if (name) fd.append('payer_name', name);
+    if (id)   fd.append('payerid', id);
+    const result = await apiCall('/api/claims/payers', fd);
+    renderPayerSearch(result.data);
+    showToast('Payer list retrieved from Claim.MD', 'success');
+  } catch(e) { showToast('Error: ' + e.message, 'error'); }
+}
+
+function renderPayerSearch(data) {
+  const tbody = document.getElementById('payer-search-tbody');
+  const panel = document.getElementById('payer-search-results');
+  panel.style.display = 'block';
+  const payers = data?.payer ? (Array.isArray(data.payer) ? data.payer : [data.payer]) : [];
+  if (!payers.length) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:12px;color:#718096">No payers found.</td></tr>'; return; }
+  const yn = v => v==='1'?'✅':'—';
+  tbody.innerHTML = payers.slice(0,20).map(p=>`
+    <tr>
+      <td><strong>${p.payerid||'—'}</strong></td>
+      <td>${p.payer_name||'—'}</td>
+      <td>${yn(p.claims)}</td>
+      <td>${yn(p.elig)}</td>
+      <td>${yn(p.era)}</td>
+    </tr>`).join('');
+}
+
+// ── Practice Constants (set these to your actual values) ─────────────────────
+// Practice info helpers — read from localStorage (set in API Settings → Practice Information)
+function getPracticeInfo() {
+  try { return JSON.parse(localStorage.getItem('j5_practice_info') || '{}'); } catch(e) { return {}; }
+}
+function getPracticeTaxId() { return getPracticeInfo().taxId || ''; }
+function getPracticeNpi()   { return getPracticeInfo().groupNpi || ''; }
+function getPracticeProvNpi() { return getPracticeInfo().billingNpi || getPracticeInfo().groupNpi || ''; }
+
+// Claim.MD Payer ID map for common Arkansas payers
+const PAYER_ID_MAP = {
+  'BCBS Arkansas':                '00060',
+  'Aetna':                        '60054',
+  'Cigna':                        '62308',
+  'United Healthcare / Optum':    '87726',
+  'Arkansas Medicaid':            'ARMCD',
+  'Ambetter Arkansas':            '68069',
+  'QualChoice Arkansas':          'QUALC',
+};
+
+// ── Auto health check on load ─────────────────────────────────────────────────
+window.addEventListener('load', () => {
+  const savedUrl = localStorage.getItem('j5_backend_url');
+  if (savedUrl) { const el=document.getElementById('backend-url'); if(el) el.value=savedUrl; }
+  setTimeout(testConnection, 800);
+});
+
+// ═══ NAVIGATION ═══
+function go(view, el) {
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.nav').forEach(n=>n.classList.remove('active'));
+  document.getElementById('view-'+view).classList.add('active');
+  if(el) el.classList.add('active');
+}
+
+// ═══ ELIGIBILITY WORKFLOW ═══
+let eligStep = 1;
+function eligNext(n) {
+  document.getElementById('elig-s'+eligStep).style.display='none';
+  if(eligStep<4) document.getElementById('estep-'+eligStep).classList.remove('active');
+  if(n===3) { runEligCheck(); }
+  eligStep=n;
+  const el=document.getElementById('elig-s'+n);
+  if(el) el.style.display='block';
+  // stepper
+  for(let i=1;i<=4;i++){
+    const s=document.getElementById('estep-'+i);
+    if(!s)continue;
+    s.classList.remove('active','done');
+    if(i<n) s.classList.add('done');
+    else if(i===n) s.classList.add('active');
+    const l=document.getElementById('eline-'+i);
+    if(l) l.classList.toggle('done',i<n);
+  }
+}
+
+function eligSave() {
+  document.getElementById('elig-s4').style.display='none';
+  document.getElementById('elig-s4-done').style.display='block';
+}
+function resetElig() {
+  eligStep=1;
+  document.getElementById('elig-s4-done').style.display='none';
+  document.getElementById('elig-s1').style.display='block';
+  for(let i=1;i<=4;i++){
+    const s=document.getElementById('estep-'+i);
+    if(s){s.classList.remove('active','done');if(i===1)s.classList.add('active');}
+    const l=document.getElementById('eline-'+i);
+    if(l)l.classList.remove('done');
+  }
+}
+
+// ═══ PRIOR AUTH WORKFLOW ═══
+let authStep=1;
+function showAuthWorkflow(){ document.getElementById('auth-workflow').style.display='block'; document.getElementById('auth-board').style.display='none'; resetAuth(); }
+function hideAuthWorkflow(){ document.getElementById('auth-workflow').style.display='none'; document.getElementById('auth-board').style.display='block'; }
+
+function authNext(n){
+  document.getElementById('auth-s'+authStep).style.display='none';
+  if(n===2) renderAuthReq();
+  if(n===3) renderAuthChecklist();
+  authStep=n;
+  const el=document.getElementById('auth-s'+n);
+  if(el) el.style.display='block';
+  for(let i=1;i<=4;i++){
+    const s=document.getElementById('astep-'+i);
+    if(!s)continue;
+    s.classList.remove('active','done');
+    if(i<n) s.classList.add('done');
+    else if(i===n) s.classList.add('active');
+    const l=document.getElementById('aline-'+i);
+    if(l) l.classList.toggle('done',i<n);
+  }
+}
+
+function renderAuthReq(){
+  const payer = document.getElementById('a-payer').value||'BCBS Arkansas';
+  const svc = document.getElementById('a-svctype').value;
+  const cpt = document.getElementById('a-cpt').value||'';
+  const cptCode = cpt.split(' ')[0]||'—';
+  const svcLabel = {speech:'Speech Therapy',ot:'Occupational Therapy',aba:'ABA Therapy',mh:'Mental Health',psych:'Psych Testing'}[svc]||'Service';
+  const alwaysReq = svc==='aba'||payer==='Arkansas Medicaid'||payer==='Ambetter Arkansas';
+  const portal = payer.includes('BCBS')||payer.includes('Aetna')?'Availity (availity.com)':payer.includes('Cigna')?'CignaforHCP (cignaforhcp.com)':payer.includes('United')?'Optum (optum.com)':'Provider portal (check payer site)';
+  const phone = payer.includes('BCBS')?'1-800-238-8379':payer.includes('Aetna')?'1-800-346-8990':payer.includes('Cigna')?'1-855-837-8495':payer.includes('United')?'1-800-876-4797':'1-800-482-5431';
+  document.getElementById('auth-req-result').innerHTML=`
+    <div class="rc">
+      <div class="rc-title">🔐 Auth Requirement — ${payer} / CPT ${cptCode}</div>
+      <table>
+        <tr><td>Payer</td><td>${payer}</td></tr>
+        <tr><td>Service Type</td><td>${svcLabel}</td></tr>
+        <tr><td>CPT Code</td><td>${cptCode}</td></tr>
+        <tr><td>Auth Required</td><td><strong>${alwaysReq?'✅ Yes — required before treatment':svc==='speech'||svc==='ot'?'⚠️ Required after 20 visits':'⚠️ Required after session 8'}</strong></td></tr>
+        <tr><td>Submission Portal</td><td>${portal}</td></tr>
+        <tr><td>Auth Phone Line</td><td>${phone}</td></tr>
+        <tr><td>Turnaround Time</td><td>${payer.includes('Medicaid')?'10–15 business days':'3–5 business days'}</td></tr>
+      </table>
+      <div class="${alwaysReq?'rc-err':'rc-warn'}">${alwaysReq?'⚠️ Authorization must be obtained BEFORE treatment begins. Retro-authorization is typically not accepted.':'⚠️ Verify visit count before assuming auth is not yet needed. Exceeded visits without auth may result in claim denial.'}</div>
+    </div>`;
+}
+
+function renderAuthChecklist(){
+  const svc = document.getElementById('a-svctype').value;
+  const cpt = (document.getElementById('a-cpt').value||'').split(' ')[0]||'—';
+  const items = [
+    {text:'Provider NPI (Type 1)',req:true},
+    {text:'Practice / Group NPI (Type 2)',req:true},
+    {text:'Rendering provider name and credentials',req:true},
+    {text:'Member ID and date of birth',req:true},
+    {text:'Primary ICD-10 diagnosis code',req:true},
+    {text:`CPT code(s): ${cpt}`,req:true},
+    {text:'Number of sessions/hours requested',req:true},
+    {text:'Treatment start date',req:true},
+    {text:'Signed treatment plan (includes goals and frequency)',req:true},
+    ...(svc==='aba'?[
+      {text:'Functional Behavior Assessment (FBA) report',req:true},
+      {text:'BCBA signature on treatment plan',req:true},
+      {text:'Autism diagnosis documentation (DSM-5)',req:true},
+      {text:'Hours per week requested (direct + supervision)',req:true},
+    ]:svc==='speech'?[
+      {text:'Speech-language evaluation report (within 12 months)',req:true},
+      {text:'Standardized test scores (e.g., GFTA-3, CELF)',req:false},
+      {text:'School IEP or 504 (if applicable)',req:false},
+    ]:svc==='ot'?[
+      {text:'OT evaluation report (97165/97166/97167)',req:true},
+      {text:'Standardized assessment scores (e.g., PDMS-2, BOT-2)',req:false},
+      {text:'School OT reports (if applicable)',req:false},
+    ]:[
+      {text:'Progress notes — last 2 sessions (if reauth)',req:false},
+      {text:'PHQ-9 or GAD-7 score (within 30 days)',req:true},
+      {text:'Medical necessity statement',req:true},
+    ]),
+    {text:'Referring physician information (if required by plan)',req:false},
+  ];
+  document.getElementById('auth-checklist-area').innerHTML=`
+    <div style="margin-bottom:10px;font-size:.78rem;color:#4a5568">Check off each item as it is gathered. All <span style="color:#c53030;font-weight:600">Required</span> items must be complete before submission.</div>
+    ${items.map((it,i)=>`
+      <div class="cl-item">
+        <div class="cl-check" id="clk-${i}" onclick="toggleCheck(${i})"></div>
+        <div class="cl-text">${it.text}</div>
+        <span class="${it.req?'cl-req':'cl-tag'}">${it.req?'Required':'Optional'}</span>
+      </div>`).join('')}
+    <div class="alert bl" style="margin-top:10px">ℹ️ ⚠️ All submissions require review and approval by an authorized J5 Therapy staff member. Do not submit directly from this checklist.</div>`;
+}
+
+function toggleCheck(i){
+  const el=document.getElementById('clk-'+i);
+  el.classList.toggle('checked');
+  el.innerHTML=el.classList.contains('checked')?'✓':'';
+}
+
+function authSave(){ document.getElementById('auth-s4').style.display='none'; document.getElementById('auth-s4-done').style.display='block'; }
+function resetAuth(){
+  authStep=1;
+  ['auth-s2','auth-s3','auth-s4','auth-s4-done'].forEach(id=>{const e=document.getElementById(id);if(e)e.style.display='none';});
+  document.getElementById('auth-s1').style.display='block';
+  for(let i=1;i<=4;i++){
+    const s=document.getElementById('astep-'+i);
+    if(s){s.classList.remove('active','done');if(i===1)s.classList.add('active');}
+    const l=document.getElementById('aline-'+i);
+    if(l)l.classList.remove('done');
+  }
+}
+
+// ═══ CREDENTIALING WORKFLOW ═══
+let credStep=1;
+function showCredWorkflow(){ document.getElementById('cred-workflow').style.display='block'; document.getElementById('cred-tracker').style.display='none'; renderCredDocs(); }
+function hideCredWorkflow(){ document.getElementById('cred-workflow').style.display='none'; document.getElementById('cred-tracker').style.display='block'; }
+
+function credNext(n){
+  document.getElementById('cred-s'+credStep).style.display='none';
+  credStep=n;
+  const el=document.getElementById('cred-s'+n);
+  if(el) el.style.display='block';
+  for(let i=1;i<=4;i++){
+    const s=document.getElementById('cstep-'+i);
+    if(!s)continue;
+    s.classList.remove('active','done');
+    if(i<n) s.classList.add('done');
+    else if(i===n) s.classList.add('active');
+  }
+}
+
+function renderCredDocs(){
+  const docs = [
+    {text:'Current state license — front and back',tag:'All payers',req:true},
+    {text:'NPI Type 1 confirmation letter (nppes.cms.hhs.gov)',tag:'All payers',req:true},
+    {text:'CAQH profile — attestation within 120 days',tag:'Most commercial',req:true},
+    {text:'Malpractice / professional liability COI (min $1M/$3M)',tag:'All payers',req:true},
+    {text:'CV / work history — last 5 years, no gaps > 30 days unexplained',tag:'All payers',req:true},
+    {text:'W-9 — signed and dated',tag:'All payers',req:true},
+    {text:'Voided check or EFT authorization form',tag:'All payers',req:true},
+    {text:'Signed credentialing application — one per target payer',tag:'Per payer',req:true},
+    {text:'DEA certificate (if prescribing)',tag:'If applicable',req:false},
+    {text:'Board certification certificate (if applicable)',tag:'If applicable',req:false},
+    {text:'Hospital privileges documentation (if applicable)',tag:'If applicable',req:false},
+    {text:'Copy of any prior adverse actions disclosure',tag:'If applicable',req:false},
+  ];
+  document.getElementById('cred-doclist').innerHTML=`
+    <div style="margin-bottom:10px;font-size:.78rem;color:#4a5568">Check off each document as it is received and verified. All <span style="color:#c53030;font-weight:600">Required</span> items must be complete before any payer application is submitted.</div>
+    ${docs.map((d,i)=>`
+      <div class="cl-item">
+        <div class="cl-check" id="cdk-${i}" onclick="toggleCdoc(${i})"></div>
+        <div class="cl-text">${d.text}</div>
+        <span class="${d.req?'cl-req':'cl-tag'}">${d.req?d.tag:'Optional'}</span>
+      </div>`).join('')}`;
+}
+function toggleCdoc(i){
+  const el=document.getElementById('cdk-'+i);
+  el.classList.toggle('checked');
+  el.innerHTML=el.classList.contains('checked')?'✓':'';
+}
+function credSave(){ document.getElementById('cred-s4').style.display='none'; document.getElementById('cred-s4-done').style.display='block'; }
+function resetCred(){
+  credStep=1;
+  ['cred-s2','cred-s3','cred-s4','cred-s4-done'].forEach(id=>{const e=document.getElementById(id);if(e)e.style.display='none';});
+  document.getElementById('cred-s1').style.display='block';
+  for(let i=1;i<=4;i++){const s=document.getElementById('cstep-'+i);if(s){s.classList.remove('active','done');if(i===1)s.classList.add('active');}}
+}
+
+// ═══ AI PANEL ═══
+let aiOpen=false;
+function toggleAI(){
+  aiOpen=!aiOpen;
+  document.getElementById('aip').classList.toggle('collapsed',!aiOpen);
+}
+const aiR={
+  'aba auth':()=>`<strong>ABA Auth — All Major Payers</strong><br><br>ABA therapy (97151–97158) requires prior authorization from <strong>all payers</strong> before treatment begins. Retro-auth is typically not accepted.<br><br>Key docs needed:<br>• FBA report signed by BCBA<br>• Autism diagnosis (DSM-5)<br>• Treatment plan with hours/week<br>• ICD-10: F84.0 or applicable code<br><br>Want me to start an auth request?`,
+  'speech':()=>`<strong>Speech Therapy CPT Codes</strong><br><br>Most common:<br>• <strong>92507</strong> — Individual speech therapy (most billed)<br>• 92508 — Group speech therapy<br>• 92521–92524 — Evaluations<br>• 92526 — Swallowing treatment<br><br>Auth threshold: After 20 visits (most commercial payers). AR Medicaid requires auth from visit 1.<br><br>Full list in the CPT Code DB tab.`,
+  'ot auth':()=>`<strong>OT Auth — BCBS Arkansas</strong><br><br>Occupational therapy is covered without prior auth for the first 20 visits. After 20 visits, a prior auth request (CPT 97165/97166/97167 eval required) is needed with:<br>• OT evaluation report<br>• Progress notes<br>• Functional goals documentation<br><br>AR Medicaid requires auth from visit 1 for all OT codes.`,
+  'bcba':()=>`<strong>BCBA Credentialing Documents</strong><br><br>☐ BCBA certification (BACB.com verification)<br>☐ State licensure (if required — AR requires LBA)<br>☐ NPI Type 1 confirmation<br>☐ CAQH profile — attested within 120 days<br>☐ Malpractice COI ($1M/$3M min)<br>☐ CV — last 5 years<br>☐ W-9 + EFT form<br>☐ Supervision documentation (if applicable)<br><br>Most payers credential BCBAs under ABA specialty. Timeline: 90–180 days.`,
+  'default':()=>`I can help with auth requirements by payer and CPT, CPT code lookups, credentialing checklists, and payer contacts. Try:<br><br><em>"Does Cigna require auth for 92507 after 20 visits?"</em><br><em>"What ICD-10 codes go with ABA therapy?"</em><br><em>"How long does AR Medicaid credentialing take?"</em>`
+};
+function getAiResp(msg){
+  const m=msg.toLowerCase();
+  if(m.includes('aba')&&(m.includes('auth')||m.includes('prior'))) return aiR['aba auth']();
+  if(m.includes('speech')&&(m.includes('cpt')||m.includes('code'))) return aiR['speech']();
+  if(m.includes('ot')&&(m.includes('auth')||m.includes('bcbs'))) return aiR['ot auth']();
+  if(m.includes('bcba')||m.includes('cred')) return aiR['bcba']();
+  return aiR['default']();
+}
+function appendAM(role,html){
+  const d=document.createElement('div');
+  d.className='am '+role; d.innerHTML=html;
+  document.getElementById('ai-msgs').appendChild(d);
+  document.getElementById('ai-msgs').scrollTop=99999;
+}
+function aiQ(q){if(!aiOpen){aiOpen=true;document.getElementById('aip').classList.remove('collapsed');}appendAM('user',q);setTimeout(()=>appendAM('bot',getAiResp(q)),800+Math.random()*400);}
+function aiSend(){const i=document.getElementById('ai-inp');const t=i.value.trim();if(!t)return;i.value='';aiQ(t);}
+
+// ═══ MODAL ENGINE ═══
+function showModal(html){
+  document.getElementById('modal-content').innerHTML=html;
+  document.getElementById('modal-overlay').style.display='block';
+  document.getElementById('modal-box').style.display='block';
+}
+function closeModal(){
+  document.getElementById('modal-overlay').style.display='none';
+  document.getElementById('modal-box').style.display='none';
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
+
+// ═══ CASE QUEUE ACTIONS ═══
+const STATUS_CLASS={
+  'Needs Review':'br','New':'bn','In Progress':'bp','Verified':'bv','Closed':'bg'
+};
+function viewCase(id,client,payer,memberId,service,status,assignee,created){
+  const sc=STATUS_CLASS[status]||'bn';
+  showModal(`
+    <div style="padding:0">
+      <div style="background:linear-gradient(135deg,#2b6cb0,#1a4d8a);padding:20px 24px;border-radius:14px 14px 0 0;color:#fff">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <div style="font-size:.75rem;opacity:.8;margin-bottom:2px">CASE FILE</div>
+            <div style="font-size:1.3rem;font-weight:700">#${id} · ${client}</div>
+          </div>
+          <div style="text-align:right">
+            <span class="b ${sc}" style="font-size:.8rem">${status}</span>
+          </div>
+        </div>
+      </div>
+      <div style="padding:22px 24px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px">
+          <div style="background:#f7fafc;padding:12px;border-radius:8px">
+            <div style="font-size:.68rem;color:#718096;font-weight:600;text-transform:uppercase;letter-spacing:.5px">Payer</div>
+            <div style="font-weight:600;margin-top:3px">${payer}</div>
+          </div>
+          <div style="background:#f7fafc;padding:12px;border-radius:8px">
+            <div style="font-size:.68rem;color:#718096;font-weight:600;text-transform:uppercase;letter-spacing:.5px">Member ID</div>
+            <div style="font-weight:600;margin-top:3px">${memberId}</div>
+          </div>
+          <div style="background:#f7fafc;padding:12px;border-radius:8px">
+            <div style="font-size:.68rem;color:#718096;font-weight:600;text-transform:uppercase;letter-spacing:.5px">Service Type</div>
+            <div style="font-weight:600;margin-top:3px">${service}</div>
+          </div>
+          <div style="background:#f7fafc;padding:12px;border-radius:8px">
+            <div style="font-size:.68rem;color:#718096;font-weight:600;text-transform:uppercase;letter-spacing:.5px">Assigned To</div>
+            <div style="font-weight:600;margin-top:3px">${assignee}</div>
+          </div>
+          <div style="background:#f7fafc;padding:12px;border-radius:8px">
+            <div style="font-size:.68rem;color:#718096;font-weight:600;text-transform:uppercase;letter-spacing:.5px">Created</div>
+            <div style="font-weight:600;margin-top:3px">${created}</div>
+          </div>
+          <div style="background:#f7fafc;padding:12px;border-radius:8px">
+            <div style="font-size:.68rem;color:#718096;font-weight:600;text-transform:uppercase;letter-spacing:.5px">Case ID</div>
+            <div style="font-weight:600;margin-top:3px">#${id}</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;border-top:1px solid #e2e8f0;padding-top:16px">
+          <button class="btn btn-g" onclick="closeModal()">Close</button>
+          <button class="btn btn-o" onclick="closeModal();assignCase('${id}','${client}')">Reassign</button>
+          <button class="btn btn-p" onclick="closeModal();go('eligibility',document.querySelector('[onclick*=eligibility]'))">Run Eligibility</button>
+        </div>
+      </div>
+    </div>`);
+}
+
+function assignCase(id,client){
+  showModal(`
+    <div style="padding:0">
+      <div style="background:#f7fafc;padding:16px 24px;border-radius:14px 14px 0 0;border-bottom:1px solid #e2e8f0">
+        <div style="font-weight:700;font-size:1rem">Reassign Case #${id} — ${client}</div>
+        <div style="font-size:.8rem;color:#718096;margin-top:2px">Select a staff member to assign this case to</div>
+      </div>
+      <div style="padding:20px 24px">
+        <div id="assign-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:18px">
+          ${['Jane S. — Enrollment Specialist','Marcus R. — Auth Coordinator','Priya N. — Credentialing Specialist','Sarah K. — Billing Lead','Dr. Thompson — Clinical Supervisor'].map((s,i)=>`
+            <label style="display:flex;align-items:center;gap:10px;padding:10px 14px;border:1.5px solid #e2e8f0;border-radius:8px;cursor:pointer;transition:border-color .12s" onmouseover="this.style.borderColor='#2b6cb0'" onmouseout="this.style.borderColor='#e2e8f0'">
+              <input type="radio" name="assignee" value="${s.split(' —')[0]}" style="accent-color:#2b6cb0">
+              <div>
+                <div style="font-weight:600;font-size:.88rem">${s.split(' —')[0]}</div>
+                <div style="font-size:.72rem;color:#718096">${s.split('— ')[1]}</div>
+              </div>
+            </label>`).join('')}
+        </div>
+        <div style="display:flex;gap:8px;justify-content:flex-end">
+          <button class="btn btn-g" onclick="closeModal()">Cancel</button>
+          <button class="btn btn-p" onclick="confirmAssign('${id}','${client}')">✓ Confirm Assignment</button>
+        </div>
+      </div>
+    </div>`);
+}
+
+function confirmAssign(id,client){
+  const sel=document.querySelector('input[name=assignee]:checked');
+  if(!sel){alert('Please select a staff member.');return;}
+  closeModal();
+  showModal(`
+    <div style="padding:32px 24px;text-align:center">
+      <div style="font-size:2.5rem;margin-bottom:12px">✅</div>
+      <div style="font-weight:700;font-size:1.1rem;margin-bottom:6px">Case Reassigned</div>
+      <div style="color:#718096;font-size:.9rem">Case #${id} (${client}) has been assigned to <strong>${sel.value}</strong>.</div>
+      <button class="btn btn-p" style="margin-top:20px" onclick="closeModal()">Done</button>
+    </div>`);
+}
+
+function closeCase(id,client){
+  showModal(`
+    <div style="padding:0">
+      <div style="background:#fff5f5;padding:16px 24px;border-radius:14px 14px 0 0;border-bottom:1px solid #fed7d7">
+        <div style="font-weight:700;font-size:1rem;color:#c53030">Close Case #${id} — ${client}</div>
+        <div style="font-size:.8rem;color:#718096;margin-top:2px">This action will mark the case as closed.</div>
+      </div>
+      <div style="padding:20px 24px">
+        <label style="display:block;margin-bottom:6px;font-size:.85rem;font-weight:600">Closure reason</label>
+        <select class="fs" style="width:100%;margin-bottom:14px">
+          <option>Eligibility verified — services authorized</option>
+          <option>Client discharged</option>
+          <option>Duplicate case</option>
+          <option>Client transferred to another provider</option>
+          <option>Other</option>
+        </select>
+        <label style="display:block;margin-bottom:6px;font-size:.85rem;font-weight:600">Notes (optional)</label>
+        <textarea style="width:100%;border:1.5px solid #e2e8f0;border-radius:8px;padding:8px;font-size:.85rem;resize:none;box-sizing:border-box" rows="3" placeholder="Add any final notes…"></textarea>
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
+          <button class="btn btn-g" onclick="closeModal()">Cancel</button>
+          <button class="btn btn-d" onclick="confirmCloseCase('${id}','${client}')">Close Case</button>
+        </div>
+      </div>
+    </div>`);
+}
+
+function confirmCloseCase(id,client){
+  closeModal();
+  showModal(`
+    <div style="padding:32px 24px;text-align:center">
+      <div style="font-size:2.5rem;margin-bottom:12px">📁</div>
+      <div style="font-weight:700;font-size:1.1rem;margin-bottom:6px">Case Closed</div>
+      <div style="color:#718096;font-size:.9rem">Case #${id} (${client}) has been closed and archived.</div>
+      <button class="btn btn-p" style="margin-top:20px" onclick="closeModal()">Done</button>
+    </div>`);
+}
+
+// ═══ AUTH ACTIONS ═══
+function startReauth(caseId,authId,payer,cpt,service,daysLeft){
+  showModal(`
+    <div style="padding:0">
+      <div style="background:linear-gradient(135deg,#c53030,#9b2c2c);padding:20px 24px;border-radius:14px 14px 0 0;color:#fff">
+        <div style="font-size:.75rem;opacity:.8;margin-bottom:2px">RE-AUTHORIZATION</div>
+        <div style="font-size:1.2rem;font-weight:700">${authId} · Case #${caseId}</div>
+        <div style="font-size:.85rem;opacity:.85;margin-top:4px">${payer} · CPT ${cpt} · ${service}</div>
+      </div>
+      <div style="padding:22px 24px">
+        <div style="background:#fff5f5;border:1px solid #fed7d7;border-radius:8px;padding:12px;margin-bottom:18px;display:flex;align-items:center;gap:10px">
+          <span style="font-size:1.4rem">⚠️</span>
+          <div>
+            <div style="font-weight:600;color:#c53030">Expiring in ${daysLeft} days</div>
+            <div style="font-size:.8rem;color:#718096">Immediate reauthorization submission recommended</div>
+          </div>
+        </div>
+        <div style="font-weight:600;margin-bottom:10px;font-size:.9rem">Required for reauth submission:</div>
+        <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:18px">
+          ${['Updated clinical notes (last 30 days)','Current treatment plan signed by supervising provider','Functional outcome measures','Medical necessity letter','Updated insurance authorization form'].map(item=>`
+            <label style="display:flex;align-items:center;gap:8px;font-size:.85rem;cursor:pointer">
+              <input type="checkbox" style="accent-color:#2b6cb0"> ${item}
+            </label>`).join('')}
+        </div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;border-top:1px solid #e2e8f0;padding-top:16px">
+          <button class="btn btn-g" onclick="closeModal()">Cancel</button>
+          <button class="btn btn-p" onclick="closeModal();go('auth',document.querySelector('[onclick*=auth]'));showAuthWorkflow()">Start Reauth Workflow →</button>
+        </div>
+      </div>
+    </div>`);
+}
+
+function markUrgent(caseId,authId,payer,cpt,service,daysLeft){
+  showModal(`
+    <div style="padding:0">
+      <div style="background:linear-gradient(135deg,#dd6b20,#c05621);padding:20px 24px;border-radius:14px 14px 0 0;color:#fff">
+        <div style="font-size:.75rem;opacity:.8;margin-bottom:2px">URGENT ESCALATION</div>
+        <div style="font-size:1.2rem;font-weight:700">${authId} · Case #${caseId}</div>
+        <div style="font-size:.85rem;opacity:.85;margin-top:4px">${payer} · CPT ${cpt} · EXPIRES IN ${daysLeft} DAYS</div>
+      </div>
+      <div style="padding:22px 24px">
+        <div style="background:#fffaf0;border:1px solid #f6ad55;border-radius:8px;padding:12px;margin-bottom:18px">
+          <div style="font-weight:600;color:#c05621;margin-bottom:4px">🚨 Critical — ${daysLeft} days remaining</div>
+          <div style="font-size:.82rem;color:#718096">This authorization will expire very soon. Escalate immediately to prevent service interruption.</div>
+        </div>
+        <label style="display:block;margin-bottom:6px;font-size:.85rem;font-weight:600">Escalate to</label>
+        <select class="fs" style="width:100%;margin-bottom:14px">
+          <option>Dr. Thompson — Clinical Supervisor</option>
+          <option>Jane S. — Enrollment Specialist</option>
+          <option>Billing Department</option>
+          <option>Office Manager</option>
+        </select>
+        <label style="display:block;margin-bottom:6px;font-size:.85rem;font-weight:600">Escalation note</label>
+        <textarea style="width:100%;border:1.5px solid #e2e8f0;border-radius:8px;padding:8px;font-size:.85rem;resize:none;box-sizing:border-box" rows="3">Authorization ${authId} for ${payer} / ${service} expires in ${daysLeft} days — urgent reauth required.</textarea>
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
+          <button class="btn btn-g" onclick="closeModal()">Cancel</button>
+          <button class="btn btn-d" onclick="confirmUrgent('${caseId}','${authId}')">🚨 Send Escalation</button>
+        </div>
+      </div>
+    </div>`);
+}
+
+function confirmUrgent(caseId,authId){
+  closeModal();
+  showModal(`
+    <div style="padding:32px 24px;text-align:center">
+      <div style="font-size:2.5rem;margin-bottom:12px">🚨</div>
+      <div style="font-weight:700;font-size:1.1rem;margin-bottom:6px">Escalation Sent</div>
+      <div style="color:#718096;font-size:.9rem">${authId} has been flagged as urgent. The assigned supervisor will be notified immediately.</div>
+      <button class="btn btn-p" style="margin-top:20px" onclick="closeModal()">Done</button>
+    </div>`);
+}
+
+function startAppeal(caseId,client,payer,cpt,service){
+  showModal(`
+    <div style="padding:0">
+      <div style="background:linear-gradient(135deg,#553c9a,#44337a);padding:20px 24px;border-radius:14px 14px 0 0;color:#fff">
+        <div style="font-size:.75rem;opacity:.8;margin-bottom:2px">DENIAL APPEAL</div>
+        <div style="font-size:1.2rem;font-weight:700">Case #${caseId} · ${client}</div>
+        <div style="font-size:.85rem;opacity:.85;margin-top:4px">${payer} · CPT ${cpt} · ${service}</div>
+      </div>
+      <div style="padding:22px 24px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+          <div>
+            <label style="display:block;margin-bottom:4px;font-size:.82rem;font-weight:600">Denial Date</label>
+            <input class="fi" type="date" style="width:100%;box-sizing:border-box" value="${new Date().toISOString().split('T')[0]}">
+          </div>
+          <div>
+            <label style="display:block;margin-bottom:4px;font-size:.82rem;font-weight:600">Denial Reason</label>
+            <select class="fs" style="width:100%">
+              <option>Not medically necessary</option>
+              <option>Prior auth not obtained</option>
+              <option>Out of network</option>
+              <option>Duplicate claim</option>
+              <option>Missing documentation</option>
+              <option>Coding error</option>
+            </select>
+          </div>
+        </div>
+        <label style="display:block;margin-bottom:6px;font-size:.85rem;font-weight:600">Appeal type</label>
+        <div style="display:flex;gap:8px;margin-bottom:14px">
+          <label style="display:flex;align-items:center;gap:6px;font-size:.85rem;cursor:pointer"><input type="radio" name="appeal-type" value="level1" checked style="accent-color:#2b6cb0"> Level 1 (Internal)</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:.85rem;cursor:pointer"><input type="radio" name="appeal-type" value="level2" style="accent-color:#2b6cb0"> Level 2 (External)</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:.85rem;cursor:pointer"><input type="radio" name="appeal-type" value="expedited" style="accent-color:#2b6cb0"> Expedited</label>
+        </div>
+        <label style="display:block;margin-bottom:6px;font-size:.85rem;font-weight:600">Supporting documentation</label>
+        <div style="display:flex;flex-direction:column;gap:5px;margin-bottom:14px">
+          ${['Clinical notes demonstrating medical necessity','Treating provider letter of support','Evidence-based guidelines / literature','Updated treatment plan','Previous approval history'].map(d=>`
+            <label style="display:flex;align-items:center;gap:8px;font-size:.82rem;cursor:pointer">
+              <input type="checkbox" style="accent-color:#2b6cb0"> ${d}
+            </label>`).join('')}
+        </div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;border-top:1px solid #e2e8f0;padding-top:14px">
+          <button class="btn btn-g" onclick="closeModal()">Cancel</button>
+          <button class="btn btn-p" onclick="confirmAppeal('${caseId}','${client}')">📋 Submit Appeal</button>
+        </div>
+      </div>
+    </div>`);
+}
+
+function confirmAppeal(caseId,client){
+  closeModal();
+  showModal(`
+    <div style="padding:32px 24px;text-align:center">
+      <div style="font-size:2.5rem;margin-bottom:12px">📋</div>
+      <div style="font-weight:700;font-size:1.1rem;margin-bottom:6px">Appeal Submitted</div>
+      <div style="color:#718096;font-size:.9rem">Appeal for Case #${caseId} (${client}) has been logged. Track status in the Prior Auth board.</div>
+      <button class="btn btn-p" style="margin-top:20px" onclick="closeModal()">Done</button>
+    </div>`);
+}
+
+// ═══ PROVIDER DETAIL ═══
+function viewProvider(name,credential,payer,status,progress,submitted,recredDue){
+  const sc={'Pending Review':'bcp','Doc Collection':'bcc','Active':'bca','Re-Cred Due':'bd'}[status]||'bcp';
+  const pct=parseInt(progress)||0;
+  showModal(`
+    <div style="padding:0">
+      <div style="background:linear-gradient(135deg,#2f855a,#276749);padding:20px 24px;border-radius:14px 14px 0 0;color:#fff">
+        <div style="font-size:.75rem;opacity:.8;margin-bottom:2px">PROVIDER CREDENTIALING FILE</div>
+        <div style="font-size:1.3rem;font-weight:700">${name}</div>
+        <div style="font-size:.85rem;opacity:.85;margin-top:4px">${credential} · ${payer}</div>
+      </div>
+      <div style="padding:22px 24px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <span class="b ${sc}">${status}</span>
+          <span style="font-size:.82rem;color:#718096">Application progress</span>
+        </div>
+        <div class="pgb" style="height:10px;margin-bottom:4px"><div class="pgf" style="width:${pct}%;height:10px"></div></div>
+        <div style="font-size:.78rem;color:#718096;margin-bottom:18px;text-align:right">${pct}% complete</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px">
+          <div style="background:#f7fafc;padding:11px;border-radius:8px">
+            <div style="font-size:.68rem;color:#718096;font-weight:600;text-transform:uppercase">Submitted</div>
+            <div style="font-weight:600;margin-top:3px;font-size:.9rem">${submitted}</div>
+          </div>
+          <div style="background:#f7fafc;padding:11px;border-radius:8px">
+            <div style="font-size:.68rem;color:#718096;font-weight:600;text-transform:uppercase">Re-Cred Due</div>
+            <div style="font-weight:600;margin-top:3px;font-size:.9rem">${recredDue}</div>
+          </div>
+        </div>
+        <div style="font-weight:600;margin-bottom:10px;font-size:.88rem">Document checklist</div>
+        <div style="display:flex;flex-direction:column;gap:5px;margin-bottom:18px">
+          ${[
+            {doc:'NPI Number',done:true},
+            {doc:'State License (AR)',done:true},
+            {doc:'DEA Certificate',done:pct>=60},
+            {doc:'Malpractice Insurance',done:pct>=60},
+            {doc:'CAQH Profile',done:pct>=80},
+            {doc:'W-9 Form',done:pct>=80},
+            {doc:'Payer Enrollment Form',done:pct>=90}
+          ].map(({doc,done})=>`
+            <div style="display:flex;align-items:center;gap:8px;font-size:.82rem">
+              <span style="color:${done?'#38a169':'#a0aec0'}">${done?'✅':'⬜'}</span> ${doc}
+            </div>`).join('')}
+        </div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;border-top:1px solid #e2e8f0;padding-top:14px">
+          <button class="btn btn-g" onclick="closeModal()">Close</button>
+          <button class="btn btn-p" onclick="closeModal();showCredWorkflow()">Update Application →</button>
+        </div>
+      </div>
+    </div>`);
+}
+
+/* ═══════════════════════════════════════
+   ICD-10 DIAGNOSIS CODE DATABASE
+   Speech Therapy · Occupational Therapy · ABA Therapy · Mental Health · Psych Testing
+═══════════════════════════════════════ */
+const DIAG_CODES = {
+  speech: [
+    {code:'F80.0',  desc:'Phonological disorder'},
+    {code:'F80.1',  desc:'Expressive language disorder'},
+    {code:'F80.2',  desc:'Mixed receptive-expressive language disorder'},
+    {code:'F80.4',  desc:'Speech & language dev delay due to hearing loss'},
+    {code:'F80.81', desc:'Childhood onset fluency disorder (stuttering)'},
+    {code:'F80.82', desc:'Social (pragmatic) communication disorder'},
+    {code:'F80.89', desc:'Other developmental disorders of speech/language'},
+    {code:'F84.0',  desc:'Autistic disorder (with communication deficit)'},
+    {code:'R47.01', desc:'Aphasia'},
+    {code:'R47.89', desc:'Other speech disturbances'},
+    {code:'R48.0',  desc:'Dyslexia and alexia'},
+    {code:'H90.3',  desc:'Sensorineural hearing loss, bilateral'},
+    {code:'Q38.0',  desc:'Anomalies of lips (cleft lip / palate)'},
+    {code:'R13.10', desc:'Dysphagia, unspecified'},
+    {code:'G35',    desc:'Multiple sclerosis (neurogenic speech)'},
+  ],
+  ot: [
+    {code:'F82',    desc:'Specific developmental disorder of motor function (dyspraxia)'},
+    {code:'F84.0',  desc:'Autistic disorder'},
+    {code:'F98.4',  desc:'Stereotyped movement disorders'},
+    {code:'G80.0',  desc:'Spastic quadriplegic cerebral palsy'},
+    {code:'G80.1',  desc:'Spastic diplegic cerebral palsy'},
+    {code:'G80.3',  desc:'Athetoid cerebral palsy'},
+    {code:'G11.1',  desc:'Early-onset cerebellar ataxia'},
+    {code:'M62.81', desc:'Muscle weakness, generalized'},
+    {code:'M54.5',  desc:'Low back pain'},
+    {code:'R26.89', desc:'Other abnormalities of gait and mobility'},
+    {code:'Z74.09', desc:'Other reduced mobility'},
+    {code:'Q05.9',  desc:'Spina bifida, unspecified'},
+    {code:'S72.001A',desc:'Fracture of femur (initial encounter)'},
+    {code:'T14.91', desc:'Suicide attempt (OT follow-up)'},
+    {code:'Z96.641',desc:'Presence of right artificial shoulder joint'},
+  ],
+  aba: [
+    {code:'F84.0',  desc:'Autistic disorder (Level 1–3)'},
+    {code:'F84.5',  desc:'Asperger syndrome'},
+    {code:'F84.8',  desc:'Other pervasive developmental disorders'},
+    {code:'F84.9',  desc:'Pervasive developmental disorder, unspecified'},
+    {code:'F90.0',  desc:'ADHD, predominantly inattentive type'},
+    {code:'F90.1',  desc:'ADHD, predominantly hyperactive-impulsive type'},
+    {code:'F90.2',  desc:'ADHD, combined type'},
+    {code:'F91.1',  desc:'Conduct disorder, childhood-onset type'},
+    {code:'F91.3',  desc:'Oppositional defiant disorder (ODD)'},
+    {code:'F93.0',  desc:'Separation anxiety disorder of childhood'},
+    {code:'F98.4',  desc:'Stereotyped movement disorders (self-injurious)'},
+    {code:'F80.82', desc:'Social (pragmatic) communication disorder'},
+    {code:'Z13.88', desc:'Encounter for screening for developmental disorders'},
+    {code:'R41.3',  desc:'Other amnesia / memory impairment'},
+  ],
+  mh: [
+    {code:'F32.1',  desc:'Major depressive disorder, single episode, moderate'},
+    {code:'F32.9',  desc:'Major depressive disorder, unspecified'},
+    {code:'F41.1',  desc:'Generalized anxiety disorder'},
+    {code:'F41.0',  desc:'Panic disorder'},
+    {code:'F43.10', desc:'Post-traumatic stress disorder, unspecified'},
+    {code:'F43.20', desc:'Adjustment disorder, unspecified'},
+    {code:'F31.9',  desc:'Bipolar disorder, unspecified'},
+    {code:'F20.9',  desc:'Schizophrenia, unspecified'},
+    {code:'F42.2',  desc:'Mixed obsessional thoughts and acts (OCD)'},
+    {code:'F60.3',  desc:'Borderline personality disorder'},
+    {code:'F10.20', desc:'Alcohol use disorder, moderate'},
+    {code:'Z63.0',  desc:'Problems in relationship with spouse or partner'},
+  ],
+  psych: [
+    {code:'F84.0',  desc:'Autistic disorder (evaluation)'},
+    {code:'F90.0',  desc:'ADHD, predominantly inattentive (evaluation)'},
+    {code:'F81.0',  desc:'Specific reading disorder (dyslexia eval)'},
+    {code:'F81.81', desc:'Disorder of written expression'},
+    {code:'F70',    desc:'Mild intellectual disabilities'},
+    {code:'F71',    desc:'Moderate intellectual disabilities'},
+    {code:'F80.2',  desc:'Mixed receptive-expressive language disorder (eval)'},
+    {code:'Z13.88', desc:'Encounter for screening for developmental disorders'},
+    {code:'Z00.3',  desc:'Encounter for examination for adolescent development state'},
+    {code:'R41.89', desc:'Other symptoms and signs involving cognitive functions'},
+  ]
+};
+
+function _buildDiagOptions(svctype, includeEmpty=true) {
+  const codes = DIAG_CODES[svctype] || [];
+  const empty = includeEmpty ? '<option value="">— Select diagnosis code —</option>' : '';
+  return empty + codes.map(c=>`<option value="${c.code}">${c.code} — ${c.desc}</option>`).join('');
+}
+
+function loadEligDiagCodes() {
+  const svc = document.getElementById('e-svctype')?.value;
+  const sel1 = document.getElementById('e-icd');
+  const sel2 = document.getElementById('e-icd2');
+  if (!sel1 || !sel2) return;
+  if (!svc) {
+    sel1.innerHTML = '<option value="">— Select service type first —</option>';
+    sel2.innerHTML = '<option value="">— Optional secondary —</option>';
+    return;
+  }
+  sel1.innerHTML = _buildDiagOptions(svc);
+  sel2.innerHTML = '<option value="">— Optional secondary —</option>' +
+    (DIAG_CODES[svc]||[]).map(c=>`<option value="${c.code}">${c.code} — ${c.desc}</option>`).join('');
+}
+
+function loadAuthDiagCodes() {
+  const svc = document.getElementById('a-svctype')?.value;
+  const sel = document.getElementById('a-icd');
+  if (!sel) return;
+  if (!svc) { sel.innerHTML = '<option value="">— Select service type first —</option>'; return; }
+  sel.innerHTML = _buildDiagOptions(svc);
+}
+
+/* ═══════════════════════════════════════
+   KANBAN CARD DETAIL MODAL
+   viewKanbanAuth(caseId, client, payer, cpt, service, status, authId, dates, units, assignee)
+═══════════════════════════════════════ */
+function viewKanbanAuth(caseId, client, payer, cpt, service, status, authId='', dates='', units='', assignee='') {
+  const statusMap = {
+    todo:      {label:'To Do',      color:'#744210', bg:'#fefcbf', icon:'📝'},
+    submitted: {label:'Submitted',  color:'#744210', bg:'#fefce8', icon:'⏳'},
+    approved:  {label:'Approved',   color:'#1a4731', bg:'#f0fff4', icon:'✅'},
+    expiring:  {label:'Expiring',   color:'#7b341e', bg:'#fff5f0', icon:'⚠️'},
+    denied:    {label:'Denied',     color:'#742a2a', bg:'#fff5f5', icon:'🚫'},
+  };
+  const s = statusMap[status] || statusMap.todo;
+  const headerColors = {
+    todo:'#2d3748', submitted:'#b7791f', approved:'#276749', expiring:'#c05621', denied:'#c53030'
+  };
+  const hc = headerColors[status] || '#2d3748';
+
+  const actionBtns = {
+    todo: `<button class="btn btn-g" onclick="closeModal()">Close</button>
+           <button class="btn btn-p" onclick="closeModal();showAuthWorkflow()">Start Auth Workflow →</button>`,
+    submitted: `<button class="btn btn-g" onclick="closeModal()">Close</button>
+                <button class="btn btn-o" onclick="closeModal();goCheckStatus('${caseId}','${payer}')">Check Status →</button>`,
+    approved: `<button class="btn btn-g" onclick="closeModal()">Close</button>
+               <button class="btn btn-p" onclick="closeModal();startReauth('${caseId}','${authId}','${payer}','${cpt}','${service}','30')">Start Reauth →</button>`,
+    expiring: `<button class="btn btn-g" onclick="closeModal()">Close</button>
+               <button class="btn btn-d" onclick="closeModal();startReauth('${caseId}','${authId}','${payer}','${cpt}','${service}','7')">Start Reauth Now →</button>`,
+    denied: `<button class="btn btn-g" onclick="closeModal()">Close</button>
+             <button class="btn btn-o" onclick="closeModal();startAppeal('${caseId}','${client}','${payer}','${cpt}','${service}')">Start Appeal →</button>`,
+  };
+
+  showModal(`
+    <div style="padding:0">
+      <div style="background:${hc};padding:20px 24px;border-radius:14px 14px 0 0;color:#fff">
+        <div style="font-size:.72rem;opacity:.75;margin-bottom:2px;letter-spacing:.06em">PRIOR AUTHORIZATION · CASE #${caseId}</div>
+        <div style="font-size:1.25rem;font-weight:700">${client !== '—' ? client : 'Auth ' + authId}</div>
+        <div style="font-size:.83rem;opacity:.85;margin-top:4px">${payer} · CPT ${cpt} · ${service}</div>
+      </div>
+      <div style="padding:22px 24px">
+        <div style="display:inline-flex;align-items:center;gap:6px;background:${s.bg};color:${s.color};padding:4px 12px;border-radius:20px;font-size:.8rem;font-weight:600;margin-bottom:18px">
+          ${s.icon} ${s.label}
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px">
+          ${authId ? `<div style="background:#f7fafc;padding:11px;border-radius:8px"><div style="font-size:.67rem;color:#718096;font-weight:600;text-transform:uppercase">Auth ID</div><div style="font-weight:600;margin-top:3px;font-size:.9rem">${authId}</div></div>` : ''}
+          <div style="background:#f7fafc;padding:11px;border-radius:8px"><div style="font-size:.67rem;color:#718096;font-weight:600;text-transform:uppercase">Payer</div><div style="font-weight:600;margin-top:3px;font-size:.9rem">${payer}</div></div>
+          <div style="background:#f7fafc;padding:11px;border-radius:8px"><div style="font-size:.67rem;color:#718096;font-weight:600;text-transform:uppercase">CPT Code</div><div style="font-weight:600;margin-top:3px;font-size:.9rem">${cpt}</div></div>
+          <div style="background:#f7fafc;padding:11px;border-radius:8px"><div style="font-size:.67rem;color:#718096;font-weight:600;text-transform:uppercase">Service Type</div><div style="font-weight:600;margin-top:3px;font-size:.9rem">${service}</div></div>
+          ${dates ? `<div style="background:#f7fafc;padding:11px;border-radius:8px"><div style="font-size:.67rem;color:#718096;font-weight:600;text-transform:uppercase">${status==='submitted'?'Submitted':'Auth Period'}</div><div style="font-weight:600;margin-top:3px;font-size:.9rem">${dates}</div></div>` : ''}
+          ${units ? `<div style="background:#f7fafc;padding:11px;border-radius:8px"><div style="font-size:.67rem;color:#718096;font-weight:600;text-transform:uppercase">Approved Units</div><div style="font-weight:600;margin-top:3px;font-size:.9rem">${units}</div></div>` : ''}
+          ${assignee ? `<div style="background:#f7fafc;padding:11px;border-radius:8px"><div style="font-size:.67rem;color:#718096;font-weight:600;text-transform:uppercase">Assigned To</div><div style="font-weight:600;margin-top:3px;font-size:.9rem">${assignee}</div></div>` : ''}
+        </div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;border-top:1px solid #e2e8f0;padding-top:14px">
+          ${actionBtns[status] || actionBtns.todo}
+        </div>
+      </div>
+    </div>`);
+}
+
+/* ═══════════════════════════════════════
+   KANBAN CARD EVENT DELEGATION
+   Uses data-vk attribute instead of onclick on divs,
+   since browsers can strip onclick from non-button elements.
+═══════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', function() {
+  // Wire kanban cards via event delegation on the auth board
+  document.addEventListener('click', function(e) {
+    const card = e.target.closest('.kcard[data-vk]');
+    if (card) {
+      try {
+        const args = JSON.parse(card.getAttribute('data-vk'));
+        viewKanbanAuth(...args);
+      } catch(err) {
+        console.error('Kanban card click error:', err);
+      }
+    }
+  });
+
+  // Load saved practice information into the settings form
+  loadPracticeInfo();
+
+  // Dynamic dashboard greeting
+  const greetEl = document.getElementById('dash-greeting');
+  const dateEl  = document.getElementById('dash-date');
+  if (greetEl) {
+    const hr = new Date().getHours();
+    const tod = hr < 12 ? 'Good morning' : hr < 17 ? 'Good afternoon' : 'Good evening';
+    const info = getPracticeInfo();
+    const name = info.practiceName ? ` — ${info.practiceName}` : '';
+    greetEl.textContent = `${tod}${name}`;
+  }
+  if (dateEl) {
+    dateEl.textContent = new Date().toLocaleDateString('en-US', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
+  }
+});
+
+const _origViewEraDetail = viewEraDetail;
+viewEraDetail = async function(eraid) {
+  const panel = document.getElementById('era-detail-panel');
+  const body  = document.getElementById('era-detail-body');
+  const title = document.getElementById('era-detail-title');
+  if (!panel) return;
+  panel.style.display = 'block';
+  title.textContent = 'ERA Detail — ID ' + eraid;
+  body.innerHTML = '⏳ Loading from Claim.MD…';
+  panel.scrollIntoView({behavior:'smooth'});
+  try {
+    const fd = new FormData(); fd.append('eraid', eraid);
+    const result = await apiCall('/api/era/details', fd);
+    const d = result.data || {};
+    body.innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:12px">
+        <div><strong>ERA ID:</strong> ${eraid}</div>
+        <div><strong>Check #:</strong> ${d.check_number||'—'}</div>
+        <div><strong>Paid Amount:</strong> $${parseFloat(d.paid_amount||0).toFixed(2)}</div>
+        <div><strong>Source:</strong> Claim.MD live</div>
+      </div>
+      <details open><summary style="font-size:.75rem;color:#2b6cb0;cursor:pointer;margin-bottom:8px">Full ERA Data (835)</summary>
+      <pre style="font-size:.68rem;background:#f7fafc;padding:10px;border-radius:6px;overflow:auto;max-height:300px">${JSON.stringify(d, null, 2)}</pre></details>`;
+  } catch(e) {
+    body.innerHTML = `<div style="background:#fff5f5;border:1px solid #fed7d7;border-radius:8px;padding:14px;color:#c53030">
+      ❌ Could not load ERA detail: ${e.message}<br>
+      <span style="font-size:.75rem;color:#718096;margin-top:6px;display:block">Make sure your backend URL is configured in API Settings and your Claim.MD key is set in Cloud Run.</span></div>`;
+  }
+};
+
+const _origDownloadEraPdf = downloadEraPdf;
+downloadEraPdf = async function(eraid) {
+  showToast('Requesting ERA PDF from Claim.MD…');
+  try {
+    const fd = new FormData(); fd.append('eraid', eraid);
+    const result = await apiCall('/api/era/pdf', fd);
+    const pdfB64 = result.data?._text || result.data?.data?._text;
+    if (pdfB64) {
+      const link = document.createElement('a');
+      link.href = 'data:application/pdf;base64,' + pdfB64;
+      link.download = 'ERA_' + eraid + '.pdf';
+      link.click();
+      showToast('PDF downloaded!', 'success');
+    } else {
+      showToast('PDF not available — backend returned no file data.', 'error');
+    }
+  } catch(e) {
+    showToast('PDF requires live Claim.MD backend connection. ' + e.message, 'error');
+  }
+};
+</script>
+</body>
+</html>
