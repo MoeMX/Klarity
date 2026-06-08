@@ -7,10 +7,9 @@ steps:
   entrypoint: gcloud
   args:
   - 'run'
-  - 'services'
-  - 'update'
+  - 'deploy'
   - 'klaritydb'
   - '--image=us-west2-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/klaritydb/klaritydb:$COMMIT_SHA'
   - '--region=us-west2'
   - '--port=3000'
-  - '--remove-annotations=run.googleapis.com/sources'
+  - '--platform=managed'
